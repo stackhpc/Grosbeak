@@ -1,0 +1,3 @@
+[submodule "HealthMonitorTempestPlugin"]
+	path = HealthMonitorTempestPlugin
+	url = git@github.com:stackhpc/HealthMonitorTempestPlugin.git
