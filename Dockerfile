@@ -10,3 +10,8 @@ RUN pip install tempest-fork/
 RUN pip install python-tempestconf/
 RUN pip install HealthMonitorTempestPlugin/
 RUN tempest init cloud
+
+RUN  groupadd --gid 43000 canary \
+    && useradd -l -M --shell /usr/sbin/nologin --uid 43000 --gid 43000 canary-agent
+
+USER canary-agent
