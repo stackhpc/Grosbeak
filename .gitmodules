@@ -1,3 +1,10 @@
 [submodule "HealthMonitorTempestPlugin"]
 	path = HealthMonitorTempestPlugin
 	url = git@github.com:stackhpc/HealthMonitorTempestPlugin.git
+[submodule "tempest-fork"]
+	path = tempest-fork
+	url = https://github.com/stackhpc/tempest-fork/
+	branch = no_admin_creds
+[submodule "python-tempestconf"]
+	path = python-tempestconf
+	url = https://opendev.org/openinfra/python-tempestconf
