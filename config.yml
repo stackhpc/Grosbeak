@@ -1,0 +1,30 @@
+#Opencloud API config
+os_project_domain: Default
+os_user_domain_name: Default
+os_project_name: test
+os_tenant_name: test
+os_username: bob
+os_password: test
+os_auth_url: http://192.168.33.2:5000
+os_interface: public
+os_endpoint_type: publicURL
+os_identity_api_version : v3
+os_region_name: RegionOne
+os_auth_plugin: password
+
+#CANARY TEST CONFIG
+#VM config - if the VM is not reachable from the host this test is run on, then a floating network will need to be configured
+floating_ips: True
+floating_net_id: c75dd66e-7e1a-4b33-9240-9bc4ce452331
+#network for VMs to be created on 
+pub_net_id: f3870bba-16f1-43b3-8bb1-3c41659f2ee0
+#images
+images:
+  - d2ac6a57-3669-44aa-a9f3-9690647ad1c5
+  - d2ac6a57-3669-44aa-a9f3-9690647ad1c5
+ssh_users:
+  - cirros
+  - cirros
+flavors:
+  - 1
+  - 2

@@ -1,0 +1,29 @@
+---
+- name: Install dependencies
+  hosts: localhost
+  connection: local
+  become: yes
+  become_method: sudo
+  
+  tasks:
+  - name: install docker-py
+    pip: 
+      name: "docker-py"
+      state: present
+
+- name: Canary Setup
+  hosts: localhost
+  connection: local
+  vars_files:
+    - config.yml
+  
+  tasks:
+  - name: Build image and with build args
+    become: yes
+    become_method: sudo
+    docker_image:
+      build:
+        path: .
+      name: canary:latest
+      source: build
+      state: present
