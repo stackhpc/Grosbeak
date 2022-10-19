@@ -36,7 +36,8 @@
   vars:
     image_name: canary:latest
     container_name: canary
-    volume_name: cloud
+    cloud_volume_name: cloud
+    logs_volume_name: healthmon
   vars_files:
     - config.yml
   
@@ -45,14 +46,24 @@
     docker_image:
       build:
         path: .
+        # args:
+        #   cloud_volume_name: "{{ cloud_volume_name }}"
+        #   logs_volume_name: "{{ logs_volume_name }}"
       name: "{{ image_name }}"
       source: build
       state: present
-  - name: Create a volume
+
+  - name: Create a volume for cloud config
     become: yes
     become_method: sudo
     docker_volume:
-      name: "{{ volume_name }}"
+      name: "{{ cloud_volume_name }}"
+      
+  - name: Create a volume for logs 
+    become: yes
+    become_method: sudo
+    docker_volume:
+      name: "{{ logs_volume_name }}"
 
   - name: Start container
     docker_container:
@@ -61,13 +72,21 @@
       detach: yes
       tty: yes
       mounts:
-        - source: "{{ volume_name }}"
-          target: /cloud
+        - source: "{{ cloud_volume_name }}"
+          target: "/{{ cloud_volume_name }}"
+        - source: "{{ logs_volume_name }}"
+          target: "/var/log/{{ logs_volume_name }}"
 
-  - name: symlink volume to host
+  - name: symlink cloud volume to host
     file:
-      src: "{{ docker_runtime_directory or '/var/lib/docker' }}/volumes/{{ volume_name }}/_data"
-      path: ./cloud
+      src: "{{ docker_runtime_directory or '/var/lib/docker' }}/volumes/{{ cloud_volume_name }}/_data"
+      path: "./{{ cloud_volume_name }}"
+      state: link
+
+  - name: symlink logs volume to host
+    file:
+      src: "{{ docker_runtime_directory or '/var/lib/docker' }}/volumes/{{ logs_volume_name }}/_data"
+      path: "/var/log/{{ logs_volume_name }}"
       state: link
       
   - name: Configure tempest
@@ -118,6 +137,15 @@
     loop: "{{ images | zip(ssh_users, flavors) | list }}"
     loop_control:
       index_var: idx
+  
+  - name: Configure accounts.yml
+    blockinfile:
+      path: ./cloud/etc/accounts.yml
+      block: |
+        - username: '{{ os_username }}'
+          tenant_name: '{{ os_project_name }}'
+          password: '{{ os_password }}'
+      
   # - name: Append tempest.conf with images
   #   lineinfile:
   #     path: ./cloud/etc/tempest.conf

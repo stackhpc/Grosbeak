@@ -22,4 +22,6 @@ RUN pip3 install /home/$USER/python-tempestconf/
 RUN pip3 install /home/$USER/HealthMonitorTempestPlugin/
 RUN tempest init cloud
 RUN chown -R $UID:$GID cloud
+RUN chown -R $UID:$GID /tmp/tempest-lock
+RUN touch cloud/etc/accounts.yml
 USER $USER
