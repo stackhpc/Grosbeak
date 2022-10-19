@@ -1,6 +1,6 @@
 [submodule "HealthMonitorTempestPlugin"]
 	path = HealthMonitorTempestPlugin
-	url = git@github.com:stackhpc/HealthMonitorTempestPlugin.git
+	url = https://github.com/stackhpc/HealthMonitorTempestPlugin.git
 [submodule "tempest-fork"]
 	path = tempest-fork
 	url = https://github.com/stackhpc/tempest-fork/
