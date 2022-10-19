@@ -1,5 +1,8 @@
+#Docker config 
+docker_runtime_directory: "" #default is /var/lib/docker
+
 #Opencloud API config
-os_project_domain: Default
+os_project_domain_name: Default
 os_user_domain_name: Default
 os_project_name: test
 os_tenant_name: test
