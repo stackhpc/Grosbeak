@@ -6,24 +6,152 @@
   become_method: sudo
   
   tasks:
-  - name: install docker-py
+  - name: uninstall docker-py if present
     pip: 
       name: "docker-py"
+      state: absent
+    notify: 
+      - uninstall docker pip #workaround since docker-py install breaks docker install - they share the same namespace
+
+  - name: Flush handlers
+    meta: flush_handlers
+
+  - name: install docker pip
+    pip: 
+      name: "docker"
       state: present
+  
+  handlers:
+  - name: uninstall docker pip
+    pip:
+      name: "docker"
+      state: absent
+      
 
 - name: Canary Setup
   hosts: localhost
+  become: yes
+  become_method: sudo
   connection: local
+  vars:
+    image_name: canary:latest
+    container_name: canary
+    volume_name: cloud
   vars_files:
     - config.yml
   
   tasks:
-  - name: Build image and with build args
-    become: yes
-    become_method: sudo
+  - name: Build image
     docker_image:
       build:
         path: .
-      name: canary:latest
+      name: "{{ image_name }}"
       source: build
       state: present
+  - name: Create a volume
+    become: yes
+    become_method: sudo
+    docker_volume:
+      name: "{{ volume_name }}"
+
+  - name: Start container
+    docker_container:
+      name: "{{ container_name }}"
+      image: "{{ image_name }}"
+      detach: yes
+      tty: yes
+      mounts:
+        - source: "{{ volume_name }}"
+          target: /cloud
+
+  - name: symlink volume to host
+    file:
+      src: "{{ docker_runtime_directory or '/var/lib/docker' }}/volumes/{{ volume_name }}/_data"
+      path: ./cloud
+      state: link
+      
+  - name: Configure tempest
+    command: > 
+      docker exec
+      -e OS_PROJECT_DOMAIN_NAME={{ os_project_domain_name | quote }}
+      -e OS_USER_DOMAIN_NAME={{os_user_domain_name | quote }}
+      -e OS_PROJECT_NAME={{ os_project_name | quote }}
+      -e OS_TENANT_NAME={{ os_tenant_name| quote }}
+      -e OS_USERNAME={{ os_username | quote }}
+      -e OS_PASSWORD={{ os_password | quote }}
+      -e OS_AUTH_URL={{ os_auth_url | quote }}
+      -e OS_INTERFACE={{ os_interface | quote }}
+      -e OS_ENDPOINT_TYPE={{ os_endpoint_type | quote }}
+      -e OS_IDENTITY_API_VERSION={{ os_identity_api_version | quote }}
+      -e OS_REGION_NAME={{ os_region_name | quote }}
+      -e OS_AUTH_PLUGIN={{ os_auth_plugin | quote }}
+      -e FLOATING_IPS={{ floating_ips }}
+      -e FLOATING_NET_ID={{ floating_net_id }}
+      -e PUB_NET_ID={{ pub_net_id }}
+
+      {{ container_name }} bash -c 
+      'cd cloud && discover-tempest-config 
+      --out /cloud/etc/tempest.conf --non-admin 
+      --os-auth-url $OS_AUTH_URL --os-project-name $OS_PROJECT_NAME 
+      --os-user-domain-name $OS_USER_DOMAIN_NAME 
+      --os-project-domain-name $OS_PROJECT_DOMAIN_NAME
+      --os-region-name $OS_REGION_NAME --os-interface public
+      --os-api-version $OS_IDENTITY_API_VERSION 
+      network-feature-enabled.floating_ips $FLOATING_IPS
+      network.public_network_id $PUB_NET_ID 
+      auth.test_accounts_file /cloud/etc/accounts.yml
+      network.floating_network_name $FLOATING_NET_ID'
+
+  - name: Append tempest.conf with health monitor section header
+    lineinfile:
+      path: ./cloud/etc/tempest.conf
+      line: "[healthmon]"
+
+  - name: Append tempest.conf with test config
+    blockinfile: 
+      path: ./cloud/etc/tempest.conf
+      block: |
+        image = {{ item.0 }}
+        ssh_user = {{ item.1 }}
+        flavor = {{ item.2 }}
+      marker: "# {mark} ANSIBLE MANAGED BLOCK {{idx+1}}"
+    loop: "{{ images | zip(ssh_users, flavors) | list }}"
+    loop_control:
+      index_var: idx
+  # - name: Append tempest.conf with images
+  #   lineinfile:
+  #     path: ./cloud/etc/tempest.conf
+  #     line: "image = {{ item }}"
+  #   loop: "{{ images }}"
+  # - name: Append tempest.conf with flavors
+  #   lineinfile:
+  #     path: ./cloud/etc/tempest.conf
+  #     line: "flavor = {{ item }}"
+  #   loop: "{{ flavors }}"
+  # - name: Append tempest.conf with ssh_users
+  #   lineinfile:
+  #     path: ./cloud/etc/tempest.conf
+  #     line: "ssh_user = {{ item }}"
+  #   loop: "{{ ssh_users }}"
+  # - name: Append tempest.conf with images_alt
+  #   lineinfile:
+  #     path: ./cloud/etc/tempest.conf
+  #     line: "image_alt = {{ item }}"
+  #   loop: "{{ images_alt }}"
+  #   when: images_alt is defined
+  # - name: Append tempest.conf with flavors_alt
+  #   lineinfile:
+  #     path: ./cloud/etc/tempest.conf
+  #     line: "flavor_alt = {{ item }}"
+  #   loop: "{{ flavors_alt }}"
+  #   when: flavors_alt is defined
+  # - name: Append tempest.conf with ssh_users_alt
+  #   lineinfile:
+  #     path: ./cloud/etc/tempest.conf
+  #     line: "ssh_user_alt = {{ item }}"
+  #   loop: "{{ ssh_users_alt }}"
+  #   when: ssh_users_alt is defined
+
+
+
+  # - name: Add accounts.yaml for running tempest 
