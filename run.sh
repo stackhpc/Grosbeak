@@ -75,6 +75,8 @@ else
     echo "Distro not supported, please manually install ansible and docker, then run 'ansible-playbook setup.yml'"
 fi 
 
+export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+
 pip3 install --user ansible
 
 ansible-playbook setup.yml
