@@ -1,0 +1,25 @@
+# Pulling Ubuntu image
+FROM ubuntu:20.04
+
+# Updating packages and installing cron
+RUN apt-get update && apt-get install cron -y   
+
+
+#install docker 
+RUN dpkg --remove docker docker-engine docker.io containerd runc
+RUN apt-get update
+RUN apt-get -y install apt-transport-https ca-certificates curl gnupg2 software-properties-common
+RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
+RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+RUN apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io
+
+#adding healthmon cron job
+COPY cronjob /etc/cron.d/cronjob
+
+RUN chmod 0644 /etc/cron.d/cronjob
+
+RUN crontab /etc/cron.d/cronjob
+
+RUN touch /var/log/cron.log
+
+ENTRYPOINT ["cron", "-f"]
