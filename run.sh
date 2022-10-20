@@ -45,7 +45,7 @@ if [[ $OS == *"Ubuntu"* ]]; then
 
     sudo mkdir -p /etc/apt/keyrings
 
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --yes --dearmor -o /etc/apt/keyrings/docker.gpg
 
     echo \
     "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
@@ -77,6 +77,8 @@ elif [[ $OS == *"CentOS"* ]]; then
 else
     echo "Distro not supported, please manually install ansible and docker, then run 'ansible-playbook setup.yml'"
 fi 
+
+export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 
 pip3 install --user ansible
 

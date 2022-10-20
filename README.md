@@ -34,3 +34,7 @@ where `ssh_users` correspond to the images provided. It doesn't matter what orde
 ### How to Run 
 
 Once you have `config.yml` set up as you want, simply run the `run.sh` script. 
+
+Tempest workspace can be found under `./cloud/` (note you will need to sudo to view as this is a symlink owned by the docker container).
+
+Logs can be found by default under `/var/log/healthmon/` (again sudo access required). Log directory can be changed in `config.yml`. 
