@@ -1,6 +1,3 @@
-#Docker config 
-docker_runtime_directory: "" #default is /var/lib/docker
-
 #Opencloud API config
 os_project_domain_name: Default
 os_user_domain_name: Default
@@ -23,11 +20,20 @@ floating_net_id: c75dd66e-7e1a-4b33-9240-9bc4ce452331
 pub_net_id: f3870bba-16f1-43b3-8bb1-3c41659f2ee0
 #images
 images:
-  - d2ac6a57-3669-44aa-a9f3-9690647ad1c5
+  - b80cfa15-482f-4bc8-9cca-1493c9b4eccc
   - d2ac6a57-3669-44aa-a9f3-9690647ad1c5
 ssh_users:
-  - cirros
+  - ubuntu
   - cirros
 flavors:
   - 1
   - 2
+
+#CI 
+#timing - enter the frequency with which you wish this test setup should be executed in cron format
+# m h dom m dow 
+schedule: "* * * * *"
+
+#DEFAULTS - no need to touch these but you can if you want
+cron_lock_dir: /var/lock/cron
+docker_runtime_directory: /var/lib/docker
