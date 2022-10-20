@@ -79,7 +79,7 @@
 
   - name: symlink cloud volume to host
     file:
-      src: "{{ docker_runtime_directory or '/var/lib/docker' }}/volumes/{{ cloud_volume_name }}/_data"
+      src: "{{ docker_runtime_directory }}/volumes/{{ cloud_volume_name }}/_data"
       path: "./{{ cloud_volume_name }}"
       state: link
 
@@ -145,7 +145,50 @@
         - username: '{{ os_username }}'
           tenant_name: '{{ os_project_name }}'
           password: '{{ os_password }}'
-      
+
+- name: Setup cron job to execute CI job
+  hosts: localhost
+  become: yes
+  become_method: sudo
+  connection: local
+  vars:
+    image_name: canary:latest
+    container_name: canary
+    cron_image_name: cron:latest
+    cron_container_name: cron
+    cloud_volume_name: cloud
+
+  vars_files:
+    - config.yml
+  
+  tasks:
+  - name: Template cron job
+    template:
+      src: ./cronjob.j2
+      dest: cronjob
+  - name: Build cron image
+    docker_image:
+      build:
+        path: .
+        dockerfile: cronDockerfile
+      name: "{{ cron_image_name }}"
+      source: build
+      state: present
+  - name: Start container
+    docker_container:
+      name: "{{ cron_container_name }}"
+      image: "{{ cron_image_name }}"
+      detach: yes
+      tty: yes
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+
+
+
+
+
+
+
   # - name: Append tempest.conf with images
   #   lineinfile:
   #     path: ./cloud/etc/tempest.conf
