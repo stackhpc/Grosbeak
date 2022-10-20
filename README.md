@@ -30,3 +30,7 @@ flavors:
 ```
 
 where `ssh_users` correspond to the images provided. It doesn't matter what order you put flavor/image/ssh_user, however the ssh_user that will be used for each image needs to be in the same order as the images (i.e. user `ubuntu` will be used for the image `b80c...`, `cirros` will be used for image `d2ac...` etc). HealthMonitor will run through all combinations of flavors and images. Additionally, you can set flavors_alt, images_alt and ssh_users_alt for a second group of compatible images/flavors that will also be run.
+
+##### How to Run 
+
+Once you have `config.yml` set up as you want, simply run the `run.sh` script. 
