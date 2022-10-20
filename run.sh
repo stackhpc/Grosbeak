@@ -30,6 +30,9 @@ else
     VER=$(uname -r)
 fi
 
+echo "INSTALLING DEPENDENCIES"
+echo "-----------------------"
+
 if [[ $OS == *"Ubuntu"* ]]; then 
 
 	sudo dpkg --purge docker docker-engine docker.io containerd runc
@@ -76,5 +79,20 @@ else
 fi 
 
 pip3 install --user ansible
+
+echo "ENSURE MTU FOR DOCKER BRIDGE MATCHES HOST"
+echo "-----------------------"
+
+MTU = $(ip -4 r show default | awk '$5 {print $5}' | xargs ip a show dev | grep mtu | awk '$3 {print $5}')
+
+sudo touch /etc/docker/daemon.json
+
+sudo tee "/etc/docker/daemon.json" > /dev/null <<EOF
+{
+    "mtu":$MTU
+}
+EOF
+
+sudo systemctl restart docker
 
 ansible-playbook setup.yml
