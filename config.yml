@@ -57,5 +57,5 @@ cron_image_name: cron:latest
 cron_container_name: cron
 
 docker_runtime_directory: /var/lib/docker
-dockerfile_name_canary: Dockerfile
+dockerfile_name_canary: tempestDockerfile
 dockerfile_name_cron: cronDockerfile
