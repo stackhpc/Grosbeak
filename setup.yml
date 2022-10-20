@@ -39,7 +39,7 @@
   tasks:
   - name: Template Dockerfile
     template:
-      src: "./{{ dockerfile_name_canary }}.j2"
+      src: "./templates/Dockerfile.j2"
       dest: "{{ dockerfile_name_canary }}"
   - name: Build image
     docker_image:
@@ -166,7 +166,7 @@
   tasks:
   - name: Template cron job
     template:
-      src: ./cronjob.j2
+      src: ./templates/cronjob.j2
       dest: cronjob
   - name: Build cron image
     docker_image:
