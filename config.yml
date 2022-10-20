@@ -1,24 +1,22 @@
 #Opencloud API config
-os_project_domain_name: Default
-os_user_domain_name: Default
-os_project_name: test
-os_tenant_name: test
-os_username: bob
-os_password: test
-os_auth_url: http://192.168.33.2:5000
-os_interface: public
-os_endpoint_type: publicURL
-os_identity_api_version : v3
-os_region_name: RegionOne
-os_auth_plugin: password
+# os_project_domain_name: 
+# os_user_domain_name: 
+# os_project_name: 
+# os_tenant_name: 
+# os_username: 
+# os_password: 
+# os_auth_url: 
+# os_interface: 
+# os_endpoint_type: 
+# os_identity_api_version : 
+# os_region_name: 
+# os_auth_plugin: 
 
-#CANARY TEST CONFIG
+#CANARY TEST CONFIG - EXAMPLE CONFIG
 #VM config - if the VM is not reachable from the host this test is run on, then a floating network will need to be configured
 floating_ips: True
 floating_net_id: c75dd66e-7e1a-4b33-9240-9bc4ce452331
-#network for VMs to be created on 
 pub_net_id: f3870bba-16f1-43b3-8bb1-3c41659f2ee0
-#images
 images:
   - b80cfa15-482f-4bc8-9cca-1493c9b4eccc
   - d2ac6a57-3669-44aa-a9f3-9690647ad1c5
@@ -29,6 +27,15 @@ flavors:
   - 1
   - 2
 
+#CANARY TEST CONFIG
+# floating_ips: 
+# floating_net_id: 
+# pub_net_id:
+# images:
+# ssh_users:
+# flavors:
+
+
 #CI 
 #timing - enter the frequency with which you wish this test setup should be executed in cron format
 # m h dom m dow 
@@ -36,4 +43,19 @@ schedule: "* * * * *"
 
 #DEFAULTS - no need to touch these but you can if you want
 cron_lock_dir: /var/lock/cron
+
+health_check_user: canary-agent
+health_check_uid: 43000
+health_check_gid: 43000
+health_check_group: canary
+
+cloud_volume_name: cloud
+logs_volume_name: healthmon
+image_name: canary:latest
+container_name: canary
+cron_image_name: cron:latest
+cron_container_name: cron
+
 docker_runtime_directory: /var/lib/docker
+dockerfile_name_canary: Dockerfile
+dockerfile_name_cron: cronDockerfile

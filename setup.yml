@@ -33,22 +33,19 @@
   become: yes
   become_method: sudo
   connection: local
-  vars:
-    image_name: canary:latest
-    container_name: canary
-    cloud_volume_name: cloud
-    logs_volume_name: healthmon
   vars_files:
     - config.yml
   
   tasks:
+  - name: Template Dockerfile
+    template:
+      src: "./{{ dockerfile_name_canary }}.j2"
+      dest: "{{ dockerfile_name_canary }}"
   - name: Build image
     docker_image:
       build:
         path: .
-        # args:
-        #   cloud_volume_name: "{{ cloud_volume_name }}"
-        #   logs_volume_name: "{{ logs_volume_name }}"
+        dockerfile: "{{ dockerfile_name_canary }}"
       name: "{{ image_name }}"
       source: build
       state: present
@@ -92,18 +89,18 @@
   - name: Configure tempest
     command: > 
       docker exec
-      -e OS_PROJECT_DOMAIN_NAME={{ os_project_domain_name | quote }}
-      -e OS_USER_DOMAIN_NAME={{os_user_domain_name | quote }}
-      -e OS_PROJECT_NAME={{ os_project_name | quote }}
-      -e OS_TENANT_NAME={{ os_tenant_name| quote }}
-      -e OS_USERNAME={{ os_username | quote }}
-      -e OS_PASSWORD={{ os_password | quote }}
-      -e OS_AUTH_URL={{ os_auth_url | quote }}
-      -e OS_INTERFACE={{ os_interface | quote }}
-      -e OS_ENDPOINT_TYPE={{ os_endpoint_type | quote }}
-      -e OS_IDENTITY_API_VERSION={{ os_identity_api_version | quote }}
-      -e OS_REGION_NAME={{ os_region_name | quote }}
-      -e OS_AUTH_PLUGIN={{ os_auth_plugin | quote }}
+      -e OS_PROJECT_DOMAIN_NAME={{ os_project_domain_name | default(lookup('env','OS_PROJECT_DOMAIN_NAME'),true) | quote }}
+      -e OS_USER_DOMAIN_NAME={{os_user_domain_name | default(lookup('env','OS_USER_DOMAIN_NAME'),true) | quote }}
+      -e OS_PROJECT_NAME={{ os_project_name | default(lookup('env','OS_PROJECT_NAME'),true) | quote }}
+      -e OS_TENANT_NAME={{ os_tenant_name | default(lookup('env','OS_TENANT_NAME'),true) | quote }}
+      -e OS_USERNAME={{ os_username | default(lookup('env','OS_USERNAME'),true) | quote }}
+      -e OS_PASSWORD={{ os_password | default(lookup('env','OS_PASSWORD'),true) | quote }}
+      -e OS_AUTH_URL={{ os_auth_url | default(lookup('env','OS_AUTH_URL'),true) | quote }}
+      -e OS_INTERFACE={{ os_interfac | default(lookup('env','OS_INTERFACE'),true) | quote }}
+      -e OS_ENDPOINT_TYPE={{ os_endpoint_type | default(lookup('env','OS_ENDPOINT_TYPE'),true) | quote }}
+      -e OS_IDENTITY_API_VERSION={{ os_identity_api_version | default(lookup('env','OS_IDENTITY_API_VERSION'),true) | quote }}
+      -e OS_REGION_NAME={{ os_region_name | default(lookup('env','OS_REGION_NAME'),true) | quote }}
+      -e OS_AUTH_PLUGIN={{ os_auth_plugin | default(lookup('env','OS_AUTH_PLUGIN'),true) | quote }}
       -e FLOATING_IPS={{ floating_ips }}
       -e FLOATING_NET_ID={{ floating_net_id }}
       -e PUB_NET_ID={{ pub_net_id }}
@@ -123,41 +120,46 @@
 
   - name: Append tempest.conf with health monitor section header
     lineinfile:
-      path: ./cloud/etc/tempest.conf
+      path: ./{{ cloud_volume_name }}/etc/tempest.conf
       line: "[healthmon]"
 
   - name: Append tempest.conf with test config
     blockinfile: 
-      path: ./cloud/etc/tempest.conf
+      path: ./{{ cloud_volume_name }}/etc/tempest.conf
       block: |
         image = {{ item.0 }}
         ssh_user = {{ item.1 }}
         flavor = {{ item.2 }}
-      marker: "# {mark} ANSIBLE MANAGED BLOCK {{idx+1}}"
+      marker: "# {mark} ANSIBLE MANAGED BLOCK - CONFIG {{idx+1}}"
     loop: "{{ images | zip(ssh_users, flavors) | list }}"
     loop_control:
       index_var: idx
+  - name: Append tempest.conf with test config - alternative config
+    blockinfile: 
+      path: ./{{ cloud_volume_name }}/etc/tempest.conf
+      block: |
+        image_alt = {{ item.0 }}
+        ssh_user_alt = {{ item.1 }}
+        flavor_alt = {{ item.2 }}
+      marker: "# {mark} ANSIBLE MANAGED BLOCK - ALT CONFIG {{idx+1}}"
+    loop: "{{ images_alt | zip(ssh_users_alt, flavors_alt) | list }}"
+    loop_control:
+      index_var: idx
+    when: images_alt is defined and ssh_users_alt is defined and flavors_alt is defined
   
   - name: Configure accounts.yml
     blockinfile:
-      path: ./cloud/etc/accounts.yml
+      path: ./{{ cloud_volume_name }}/etc/accounts.yml
       block: |
-        - username: '{{ os_username }}'
-          tenant_name: '{{ os_project_name }}'
-          password: '{{ os_password }}'
+        - username: '{{ os_username | default(lookup('env','OS_USERNAME'),true) }}'
+          tenant_name: '{{ os_project_name | default(lookup('env','OS_PROJECT_NAME'),true) }}'
+          password: '{{ os_password | default(lookup('env','OS_PASSWORD'),true) }}'
 
 - name: Setup cron job to execute CI job
   hosts: localhost
   become: yes
   become_method: sudo
   connection: local
-  vars:
-    image_name: canary:latest
-    container_name: canary
-    cron_image_name: cron:latest
-    cron_container_name: cron
-    cloud_volume_name: cloud
-
   vars_files:
     - config.yml
   
@@ -170,7 +172,7 @@
     docker_image:
       build:
         path: .
-        dockerfile: cronDockerfile
+        dockerfile: "{{ dockerfile_name_cron }}"
       name: "{{ cron_image_name }}"
       source: build
       state: present
