@@ -23,9 +23,9 @@ RUN chown -R {{ health_check_uid }}:{{ health_check_gid }} /home/{{ health_check
 #tempest stuff install
 RUN cd /home/{{ health_check_user }} && git submodule init && git submodule update
 #get latest 
-RUN cd /home/{{ health_check_user }}/tempest-fork/ && git branch master && git pull 
-RUN cd /home/{{ health_check_user }}/python-tempestconf/ && git branch master && git pull 
-RUN cd /home/{{ health_check_user }}/HealthMonitorTempestPlugin/ && git branch master && git pull
+RUN cd /home/{{ health_check_user }}/tempest-fork/ && git checkout master && git pull 
+RUN cd /home/{{ health_check_user }}/python-tempestconf/ && git checkout master && git pull 
+RUN cd /home/{{ health_check_user }}/HealthMonitorTempestPlugin/ && git checkout master && git pull
 #install 
 RUN pip3 install /home/{{ health_check_user }}/tempest-fork/
 RUN pip3 install /home/{{ health_check_user }}/python-tempestconf/
