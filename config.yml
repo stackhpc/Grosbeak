@@ -1,16 +1,20 @@
 #Opencloud API config
-# os_project_domain_name: 
-# os_user_domain_name: 
-# os_project_name: 
-# os_tenant_name: 
-# os_username: 
-# os_password: 
-# os_auth_url: 
-# os_interface: 
-# os_endpoint_type: 
-# os_identity_api_version : 
-# os_region_name: 
-# os_auth_plugin: 
+os_project_domain_name: 
+os_project_domain_id:
+os_user_domain_name: 
+os_user_domain_id:
+os_project_name: 
+os_project_id:
+os_tenant_name: 
+os_tenant_id:
+os_username: 
+os_password: 
+os_auth_url: 
+os_interface: 
+os_endpoint_type: 
+os_identity_api_version : 
+os_region_name: 
+os_auth_plugin: 
 
 #CANARY TEST CONFIG - EXAMPLE CONFIG
 #VM config - if the VM is not reachable from the host this test is run on, then a floating network will need to be configured
