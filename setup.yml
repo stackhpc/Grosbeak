@@ -85,38 +85,120 @@
       src: "{{ docker_runtime_directory or '/var/lib/docker' }}/volumes/{{ logs_volume_name }}/_data"
       path: "/var/log/{{ logs_volume_name }}"
       state: link
+  
+  - name: Set OS cloud facts
+    set_fact:
+      os_username: "{{ os_username | default(lookup('env','OS_USERNAME'),true) }}"
+      os_password: "{{ os_password | default(lookup('env','OS_PASSWORD'),true) }}"
+      os_auth_url: "{{ os_auth_url | default(lookup('env','OS_AUTH_URL'),true) }}"
+      os_project_domain_name: "{{ os_project_domain_name | default(lookup('env','OS_PROJECT_DOMAIN_NAME'),true) }}"
+      os_project_domain_id: "{{ os_project_domain_id | default(lookup('env','OS_PROJECT_DOMAIN_ID'),true) }}"
+      os_user_domain_name: "{{  os_user_domain_name | default(lookup('env','OS_USER_DOMAIN_NAME'),true)  }}"
+      os_user_domain_id: "{{  os_user_domain_id | default(lookup('env','OS_USER_DOMAIN_ID'),true)  }}"
+      os_project_name: "{{ os_project_name | default(lookup('env','OS_PROJECT_NAME'), true) }}"
+      os_project_id: "{{ os_project_id | default(lookup('env','OS_PROJECT_ID'),true) }}"
+      os_tenant_name: "{{ os_tenant_name | default(lookup('env','OS_TENANT_NAME'),true) }}"
+      os_tenant_id: "{{ os_tenant_id | default(lookup('env','OS_TENANT_ID'),true) }}"
+      os_interface: "{{ os_interface | default(lookup('env','OS_INTERFACE'),true) }}"
+      os_endpoint_type: "{{ os_endpoint_type | default(lookup('env','OS_ENDPOINT_TYPE'),true) }}"
+      os_identity_api_version : "{{ os_identity_api_version | default(lookup('env','OS_IDENTITY_API_VERSION'),true) }}"
+      os_region_name: "{{ os_region_name | default(lookup('env','OS_REGION_NAME'),true) }}"
+      os_auth_plugin: "{{ os_auth_plugin | default(lookup('env','OS_AUTH_PLUGIN'),true) }}"
+  
+  - name: Check Keystone authentication
+    openstack.cloud.auth:
+      auth: {
+        "os_username": "{{ os_username }}",
+        "os_password": "{{ os_password }}",
+        "os_auth_url": "{{ os_auth_url }}",
+        "os_project_domain_name": "{{ os_project_domain_name }}",
+        "os_project_domain_id": "{{ os_project_domain_id }}",
+        "os_user_domain_name": "{{  os_user_domain_name }}",
+        "os_user_domain_id": "{{  os_user_domain_id }}",
+        "os_project_name": "{{ os_project_name }}",
+        "os_project_id": "{{ os_project_id }}",
+        "os_tenant_name": "{{ os_tenant_name }}",
+        "os_tenant_id": "{{ os_tenant_id }}",
+        "os_interface": "{{ os_interface }}",
+        "os_endpoint_type": "{{ os_endpoint_type }}",
+        "os_identity_api_version" : "{{ os_identity_api_version }}",
+        "os_region_name": "{{ os_region_name }}",
+        "os_auth_plugin": "{{ os_auth_plugin }}",
+      }
       
   - name: Configure tempest
     command: > 
       docker exec
-      -e OS_PROJECT_DOMAIN_NAME={{ os_project_domain_name | default(lookup('env','OS_PROJECT_DOMAIN_NAME'),true) | quote }}
-      -e OS_USER_DOMAIN_NAME={{os_user_domain_name | default(lookup('env','OS_USER_DOMAIN_NAME'),true) | quote }}
-      -e OS_PROJECT_NAME={{ os_project_name | default(lookup('env','OS_PROJECT_NAME'),true) | quote }}
-      -e OS_TENANT_NAME={{ os_tenant_name | default(lookup('env','OS_TENANT_NAME'),true) | quote }}
-      -e OS_USERNAME={{ os_username | default(lookup('env','OS_USERNAME'),true) | quote }}
-      -e OS_PASSWORD={{ os_password | default(lookup('env','OS_PASSWORD'),true) | quote }}
-      -e OS_AUTH_URL={{ os_auth_url | default(lookup('env','OS_AUTH_URL'),true) | quote }}
-      -e OS_INTERFACE={{ os_interfac | default(lookup('env','OS_INTERFACE'),true) | quote }}
-      -e OS_ENDPOINT_TYPE={{ os_endpoint_type | default(lookup('env','OS_ENDPOINT_TYPE'),true) | quote }}
-      -e OS_IDENTITY_API_VERSION={{ os_identity_api_version | default(lookup('env','OS_IDENTITY_API_VERSION'),true) | quote }}
-      -e OS_REGION_NAME={{ os_region_name | default(lookup('env','OS_REGION_NAME'),true) | quote }}
-      -e OS_AUTH_PLUGIN={{ os_auth_plugin | default(lookup('env','OS_AUTH_PLUGIN'),true) | quote }}
-      -e FLOATING_IPS={{ floating_ips }}
-      -e FLOATING_NET_ID={{ floating_net_id }}
-      -e PUB_NET_ID={{ pub_net_id }}
-
       {{ container_name }} bash -c 
-      'cd cloud && discover-tempest-config 
-      --out /cloud/etc/tempest.conf --non-admin 
-      --os-auth-url $OS_AUTH_URL --os-project-name $OS_PROJECT_NAME 
-      --os-user-domain-name $OS_USER_DOMAIN_NAME 
-      --os-project-domain-name $OS_PROJECT_DOMAIN_NAME
-      --os-region-name $OS_REGION_NAME --os-interface public
-      --os-api-version $OS_IDENTITY_API_VERSION 
-      network-feature-enabled.floating_ips $FLOATING_IPS
-      network.public_network_id $PUB_NET_ID 
-      auth.test_accounts_file /cloud/etc/accounts.yml
-      network.floating_network_name $FLOATING_NET_ID'
+      'cd {{ cloud_volume_name }} && discover-tempest-config 
+
+      --out {{ cloud_volume_name }}/etc/tempest.conf --non-admin 
+
+      --os-username {{ os_username }}
+      --os-password {{ os_password }}
+      --os-auth-url {{ os_auth_url }} 
+
+      {% if os_project_domain_name is defined %}
+      --os-project-domain-name {{ os_project_domain_name }}
+      {% end if %}
+
+      {% if os_project_domain_id is defined %}
+      --os-project-domain-id {{ os_project_domain_id }}
+      {% end if %}
+
+      {% if os_user_domain_name is defined %}
+      --os-user-domain-name {{ os_user_domain_name }} 
+      {% end if %}
+
+      {% if os_user_domain_id is defined %}
+      --os-user-domain-id {{ os_user_domain_id }}
+      {% end if %}
+
+      {% if os_project_name is defined %}
+      --os-project-name {{ os_project_name }}
+      {% end if %}
+
+      {% if os_project_id is defined %}
+      --os-project-id {{ os_project_id }}
+      {% end if %}
+
+      {% if os_tenant_name is defined %}
+      --os-tenant-name {{ os_tenant_name }}
+      {% end if %}
+
+      {% if os_tenant_id is defined %}
+      --os-tenant-id {{ os_tenant_id }}
+      {% end if %}
+
+      {% if os_interface is defined %}
+      --os-interface {{ os_interface }}
+      {% end if %}
+
+      {% if os_endpoint_type is defined %}
+      --os-endpoint-override {{ os_endpoint_type }}
+      {% end if %}
+
+      {% if os_identity_api_version is defined %}
+      --os-api-version {{ os_identity_api_version }}
+      {% end if %}
+
+      {% if os_region_name is defined %}
+      --os-region-name {{ os_region_name }} 
+      {% end if %}
+
+      {% if os_auth_plugin is defined %}
+      --os-auth-plugin {{ os_auth_plugin }} 
+      {% end if %}
+
+
+      {% if floating_ips is defined %}
+      network-feature-enabled.floating_ips {{ floating_ips }}
+      {% end if %}
+      {% if floating_net_id is defined %}
+      network.floating_network_name {{ floating_net_id }}
+      {% end if %}
+      auth.test_accounts_file {{ cloud_volume_name }}/etc/accounts.yml
+      network.public_network_id {{ pub_net_id }}'
 
   - name: Append tempest.conf with health monitor section header
     lineinfile:
@@ -145,7 +227,10 @@
     loop: "{{ images_alt | zip(ssh_users_alt, flavors_alt) | list }}"
     loop_control:
       index_var: idx
-    when: images_alt is defined and ssh_users_alt is defined and flavors_alt is defined
+    when: 
+      - images_alt is defined
+      - ssh_users_alt is defined
+      - flavors_alt is defined
   
   - name: Configure accounts.yml
     blockinfile:
