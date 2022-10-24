@@ -1,10 +1,10 @@
-## Canary 
-### A quick CI health check for your OpenStack cloud.
+## Grosbeak 
+### A CI health check for your OpenStack cloud.
 All configuration happens in `config.yml`.
 
 Defaults can be left as they are.
 
-OS cloud variables can either be configured in config.yml, or left blank if OS cloud variables are set in the environment (such as by an RC file from Horizon).
+OS cloud variables can either be configured in `config.yml`, or left blank if OS cloud variables are set in the environment (such as by an RC file from Horizon).
 
 `pub_net_id` is the network on which VMs will be spun up.
 
