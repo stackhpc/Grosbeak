@@ -105,99 +105,94 @@
       os_region_name: "{{ os_region_name | default(lookup('env','OS_REGION_NAME'),true) }}"
       os_auth_plugin: "{{ os_auth_plugin | default(lookup('env','OS_AUTH_PLUGIN'),true) }}"
   
-  - name: Check Keystone authentication
-    openstack.cloud.auth:
-      auth: {
-        "os_username": "{{ os_username }}",
-        "os_password": "{{ os_password }}",
-        "os_auth_url": "{{ os_auth_url }}",
-        "os_project_domain_name": "{{ os_project_domain_name }}",
-        "os_project_domain_id": "{{ os_project_domain_id }}",
-        "os_user_domain_name": "{{  os_user_domain_name }}",
-        "os_user_domain_id": "{{  os_user_domain_id }}",
-        "os_project_name": "{{ os_project_name }}",
-        "os_project_id": "{{ os_project_id }}",
-        "os_tenant_name": "{{ os_tenant_name }}",
-        "os_tenant_id": "{{ os_tenant_id }}",
-        "os_interface": "{{ os_interface }}",
-        "os_endpoint_type": "{{ os_endpoint_type }}",
-        "os_identity_api_version" : "{{ os_identity_api_version }}",
-        "os_region_name": "{{ os_region_name }}",
-        "os_auth_plugin": "{{ os_auth_plugin }}",
-      }
+  # - name: Check Keystone authentication
+  #   openstack.cloud.auth:
+  #     auth: {
+  #       "os_username": "{{ os_username }}",
+  #       "os_password": "{{ os_password }}",
+  #       "os_auth_url": "{{ os_auth_url }}",
+  #       "os_project_domain_name": "{{ os_project_domain_name }}",
+  #       "os_project_domain_id": "{{ os_project_domain_id }}",
+  #       "os_user_domain_name": "{{  os_user_domain_name }}",
+  #       "os_user_domain_id": "{{  os_user_domain_id }}",
+  #       "os_project_name": "{{ os_project_name }}",
+  #       "os_project_id": "{{ os_project_id }}",
+  #       "os_tenant_name": "{{ os_tenant_name }}",
+  #       "os_tenant_id": "{{ os_tenant_id }}",
+  #       "os_interface": "{{ os_interface }}",
+  #       "os_endpoint_type": "{{ os_endpoint_type }}",
+  #       "os_identity_api_version" : "{{ os_identity_api_version }}",
+  #       "os_region_name": "{{ os_region_name }}",
+  #       "os_auth_plugin": "{{ os_auth_plugin }}",
+  #     }
+
+  - name: Check minimum definitions exist
+    assert:
+      that:
+        - pub_net_id is defined
+        - pub_net_id |length
+        - os_username |length
+        - os_password |length
+        - os_auth_url |length
+      fail_msg: "Some or all of the required configuration parameters were not provided. Please source an OS RC file and/or edit 'config.yml'."
+
+
       
   - name: Configure tempest
     command: > 
       docker exec
       {{ container_name }} bash -c 
       'cd {{ cloud_volume_name }} && discover-tempest-config 
-
-      --out {{ cloud_volume_name }}/etc/tempest.conf --non-admin 
-
+      --out /{{ cloud_volume_name }}/etc/tempest.conf --non-admin 
       --os-username {{ os_username }}
       --os-password {{ os_password }}
       --os-auth-url {{ os_auth_url }} 
-
-      {% if os_project_domain_name is defined %}
+      {% if os_project_domain_name |length %}
       --os-project-domain-name {{ os_project_domain_name }}
-      {% end if %}
-
-      {% if os_project_domain_id is defined %}
+      {% endif %}
+      {% if os_project_domain_id |length %}
       --os-project-domain-id {{ os_project_domain_id }}
-      {% end if %}
-
-      {% if os_user_domain_name is defined %}
+      {% endif %}
+      {% if os_user_domain_name |length %}
       --os-user-domain-name {{ os_user_domain_name }} 
-      {% end if %}
-
-      {% if os_user_domain_id is defined %}
+      {% endif %}
+      {% if os_user_domain_id |length %}
       --os-user-domain-id {{ os_user_domain_id }}
-      {% end if %}
-
-      {% if os_project_name is defined %}
+      {% endif %}
+      {% if os_project_name |length %}
       --os-project-name {{ os_project_name }}
-      {% end if %}
-
-      {% if os_project_id is defined %}
+      {% endif %}
+      {% if os_project_id |length %}
       --os-project-id {{ os_project_id }}
-      {% end if %}
-
-      {% if os_tenant_name is defined %}
+      {% endif %}
+      {% if os_tenant_name |length %}
       --os-tenant-name {{ os_tenant_name }}
-      {% end if %}
-
-      {% if os_tenant_id is defined %}
+      {% endif %}
+      {% if os_tenant_id |length %}
       --os-tenant-id {{ os_tenant_id }}
-      {% end if %}
-
-      {% if os_interface is defined %}
+      {% endif %}
+      {% if os_interface |length %}
       --os-interface {{ os_interface }}
-      {% end if %}
-
-      {% if os_endpoint_type is defined %}
+      {% endif %}
+      {% if os_endpoint_type |length %}
       --os-endpoint-override {{ os_endpoint_type }}
-      {% end if %}
-
-      {% if os_identity_api_version is defined %}
+      {% endif %}
+      {% if os_identity_api_version |length %}
       --os-api-version {{ os_identity_api_version }}
-      {% end if %}
-
-      {% if os_region_name is defined %}
+      {% endif %}
+      {% if os_region_name |length %}
       --os-region-name {{ os_region_name }} 
-      {% end if %}
-
-      {% if os_auth_plugin is defined %}
+      {% endif %}
+      {% if os_auth_plugin |length %}
       --os-auth-plugin {{ os_auth_plugin }} 
-      {% end if %}
-
-
-      {% if floating_ips is defined %}
+      {% endif %}
+      {% if floating_ips is defined and floating_ips %}
       network-feature-enabled.floating_ips {{ floating_ips }}
-      {% end if %}
-      {% if floating_net_id is defined %}
+      {% endif %}
+      {% if floating_net_id is defined and floating_net_id|length %}
       network.floating_network_name {{ floating_net_id }}
-      {% end if %}
-      auth.test_accounts_file {{ cloud_volume_name }}/etc/accounts.yml
+      {% endif %}
+      auth.test_accounts_file /{{ cloud_volume_name }}/etc/accounts.yml
       network.public_network_id {{ pub_net_id }}'
 
   - name: Append tempest.conf with health monitor section header

@@ -80,7 +80,7 @@ fi
 
 export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 
-pip3 install --user ansible openstacksdk
+pip3 install --user ansible #openstacksdk
 
 echo "ENSURE MTU FOR DOCKER BRIDGE MATCHES HOST"
 echo "-----------------------"
