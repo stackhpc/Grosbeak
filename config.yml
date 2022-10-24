@@ -18,18 +18,15 @@ os_auth_plugin:
 
 #CANARY TEST CONFIG - EXAMPLE CONFIG
 #VM config - if the VM is not reachable from the host this test is run on, then a floating network will need to be configured
-floating_ips: True
-floating_net_id: c75dd66e-7e1a-4b33-9240-9bc4ce452331
-pub_net_id: f3870bba-16f1-43b3-8bb1-3c41659f2ee0
+floating_ips: False
+#floating_net_id: c75dd66e-7e1a-4b33-9240-9bc4ce452331
+pub_net_id: 26023e3d-bc8e-459c-8def-dbd47ab01756
 images:
-  - b80cfa15-482f-4bc8-9cca-1493c9b4eccc
-  - d2ac6a57-3669-44aa-a9f3-9690647ad1c5
+  - 4b89aa64-1860-4b1e-b294-e000b1423b13
 ssh_users:
-  - ubuntu
   - cirros
 flavors:
-  - 1
-  - 2
+  - abf8401b-f0f4-4c20-bdfa-5626bca8bf31
 
 #CANARY TEST CONFIG
 # floating_ips: 
@@ -39,6 +36,8 @@ flavors:
 # ssh_users:
 # flavors:
 
+#dev - whether docker image should be rebuilt every run of the playbook
+dev: yes
 
 #CI 
 #timing - enter the frequency with which you wish this test setup should be executed in cron format

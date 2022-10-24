@@ -4,6 +4,8 @@
   connection: local
   become: yes
   become_method: sudo
+  vars_files:
+    - config.yml
   
   tasks:
   - name: uninstall docker-py if present
@@ -20,6 +22,15 @@
     pip: 
       name: "docker"
       state: present
+  
+  - name: load submodules in dev mode
+    shell: >
+      git submodule init && git submodule update 
+      && pushd tempest-fork/ && git checkout no_admin_creds && git pull && popd 
+      && pushd python-tempestconf/ && git checkout master && git pull && popd 
+      && pushd HealthMonitorTempestPlugin/ && git checkout main && git pull && popd
+    when: dev 
+      
   
   handlers:
   - name: uninstall docker pip
@@ -48,6 +59,7 @@
         dockerfile: "{{ dockerfile_name_canary }}"
       name: "{{ image_name }}"
       source: build
+      force_source: "{{ dev }}"
       state: present
 
   - name: Create a volume for cloud config
