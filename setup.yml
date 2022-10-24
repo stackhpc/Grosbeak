@@ -2,13 +2,13 @@
 - name: Install dependencies
   hosts: localhost
   connection: local
-  become: yes
-  become_method: sudo
   vars_files:
     - config.yml
   
   tasks:
   - name: uninstall docker-py if present
+    become: yes
+    become_method: sudo
     pip: 
       name: "docker-py"
       state: absent
@@ -19,6 +19,8 @@
     meta: flush_handlers
 
   - name: install docker pip
+    become: yes
+    become_method: sudo
     pip: 
       name: "docker"
       state: present
@@ -34,6 +36,8 @@
   
   handlers:
   - name: uninstall docker pip
+    become: yes
+    become_method: sudo
     pip:
       name: "docker"
       state: absent
