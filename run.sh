@@ -1,94 +1,106 @@
 set -euox pipefail
 
-if [ -f /etc/os-release ]; then
-    # freedesktop.org and systemd
-    . /etc/os-release
-    OS=$NAME
-    VER=$VERSION_ID
-elif type lsb_release >/dev/null 2>&1; then
-    # linuxbase.org
-    OS=$(lsb_release -si)
-    VER=$(lsb_release -sr)
-elif [ -f /etc/lsb-release ]; then
-    # For some versions of Debian/Ubuntu without lsb_release command
-    . /etc/lsb-release
-    OS=$DISTRIB_ID
-    VER=$DISTRIB_RELEASE
-elif [ -f /etc/debian_version ]; then
-    # Older Debian/Ubuntu/etc.
-    OS=Debian
-    VER=$(cat /etc/debian_version)
-elif [ -f /etc/SuSe-release ]; then
-    # Older SuSE/etc.
-    ...
-elif [ -f /etc/redhat-release ]; then
-    # Older Red Hat, CentOS, etc.
-    ...
-else
-    # Fall back to uname, e.g. "Linux <version>", also works for BSD, etc.
-    OS=$(uname -s)
-    VER=$(uname -r)
-fi
+flag=false
 
-echo "INSTALLING DEPENDENCIES"
-echo "-----------------------"
+while getopts 's' opt; do
+    case $opt in
+        s) flag=true ;;
+        *) echo 'Error in command line parsing' >&2
+            exit 1 ;;
+    esac
+done
+echo "$flag"
+if ! "$flag"; then 
+    if [ -f /etc/os-release ]; then
+        # freedesktop.org and systemd
+        . /etc/os-release
+        OS=$NAME
+        VER=$VERSION_ID
+    elif type lsb_release >/dev/null 2>&1; then
+        # linuxbase.org
+        OS=$(lsb_release -si)
+        VER=$(lsb_release -sr)
+    elif [ -f /etc/lsb-release ]; then
+        # For some versions of Debian/Ubuntu without lsb_release command
+        . /etc/lsb-release
+        OS=$DISTRIB_ID
+        VER=$DISTRIB_RELEASE
+    elif [ -f /etc/debian_version ]; then
+        # Older Debian/Ubuntu/etc.
+        OS=Debian
+        VER=$(cat /etc/debian_version)
+    elif [ -f /etc/SuSe-release ]; then
+        # Older SuSE/etc.
+        ...
+    elif [ -f /etc/redhat-release ]; then
+        # Older Red Hat, CentOS, etc.
+        ...
+    else
+        # Fall back to uname, e.g. "Linux <version>", also works for BSD, etc.
+        OS=$(uname -s)
+        VER=$(uname -r)
+    fi
 
-if [[ $OS == *"Ubuntu"* ]]; then 
 
-	sudo dpkg --purge docker docker-engine docker.io containerd runc
-    sudo apt-get update
-    sudo apt-get install -y \
-    ca-certificates \
-    curl \
-    gnupg \
-    lsb-release
+    echo "INSTALLING DEPENDENCIES"
+    echo "-----------------------"
 
-    sudo mkdir -p /etc/apt/keyrings
+    if [[ $OS == *"Ubuntu"* ]]; then 
 
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --yes --dearmor -o /etc/apt/keyrings/docker.gpg
+        sudo dpkg --purge docker docker-engine docker.io containerd runc
+        sudo apt-get update
+        sudo apt-get install -y \
+        ca-certificates \
+        curl \
+        gnupg \
+        lsb-release
 
-    echo \
-    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-    $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        sudo mkdir -p /etc/apt/keyrings
 
-    sudo apt-get update
-    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --yes --dearmor -o /etc/apt/keyrings/docker.gpg
 
-    sudo apt-get install -y python3 python3-pip
-    
+        echo \
+        "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+        $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-elif [[ $OS == *"CentOS"* ]]; then 	
-    sudo yum remove docker \
-                    docker-client \
-                    docker-client-latest \
-                    docker-common \
-                    docker-latest \
-                    docker-latest-logrotate \
-                    docker-logrotate \
-                    docker-engine
-    sudo yum install -y yum-utils
-    sudo yum-config-manager \
-    --add-repo \
-    https://download.docker.com/linux/centos/docker-ce.repo
-    sudo yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+        sudo apt-get update
+        sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
-    sudo yum -y install python3 python3-pip
+        sudo apt-get install -y python3 python3-pip
+        
 
-else
-    echo "Distro not supported, please manually install ansible and docker, then run 'ansible-playbook setup.yml'"
-fi 
+    elif [[ $OS == *"CentOS"* ]]; then 	
+        sudo yum remove docker \
+                        docker-client \
+                        docker-client-latest \
+                        docker-common \
+                        docker-latest \
+                        docker-latest-logrotate \
+                        docker-logrotate \
+                        docker-engine
+        sudo yum install -y yum-utils
+        sudo yum-config-manager \
+        --add-repo \
+        https://download.docker.com/linux/centos/docker-ce.repo
+        sudo yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
-export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+        sudo yum -y install python3 python3-pip
 
-pip3 install --user ansible #openstacksdk
+    else
+        echo "Distro not supported, please manually install ansible and docker, then run 'ansible-playbook setup.yml'"
+    fi 
 
-echo "ENSURE MTU FOR DOCKER BRIDGE MATCHES HOST"
-echo "-----------------------"
-sudo systemctl restart docker
+    export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 
-MTU=$(ip -4 r show default | awk '$5 {print $5}' | xargs ip a show dev | grep mtu | awk '$3 {print $5}')
+    pip3 install --user ansible #openstacksdk
 
-sudo touch /etc/docker/daemon.json
+    echo "ENSURE MTU FOR DOCKER BRIDGE MATCHES HOST"
+    echo "-----------------------"
+    sudo systemctl restart docker
+
+    MTU=$(ip -4 r show default | awk '$5 {print $5}' | xargs ip a show dev | grep mtu | awk '$3 {print $5}')
+
+    sudo touch /etc/docker/daemon.json
 
 sudo tee "/etc/docker/daemon.json" > /dev/null <<EOF
 {
@@ -96,6 +108,7 @@ sudo tee "/etc/docker/daemon.json" > /dev/null <<EOF
 }
 EOF
 
-sudo systemctl restart docker
+    sudo systemctl restart docker
+fi 
 
 ansible-playbook setup.yml
