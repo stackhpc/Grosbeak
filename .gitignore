@@ -2,3 +2,4 @@ cronjob
 Dockerfile
 tempestDockerfile
 cloud
+venv/*
