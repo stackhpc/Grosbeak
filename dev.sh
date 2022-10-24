@@ -30,9 +30,10 @@ pip install python-tempestconf/
 pip install tempest-fork/
 pip install HealthMonitorTempestPlugin/
 
-touch venv/clouddev/etc/accounts.yml
 
 [ ! -d 'venv/clouddev' ] && tempest init venv/clouddev
+
+touch venv/clouddev/etc/accounts.yml
 
 ansible-playbook setupDev.yml
 
