@@ -4,18 +4,6 @@
   connection: local
   vars_files:
     - config.yml
-  
-  tasks:
-  - name: load submodules in dev mode
-    shell: >
-      git submodule init && git submodule update 
-      && pushd tempest-fork/ && git checkout no_admin_creds && git pull && popd 
-      && pushd python-tempestconf/ && git checkout master && git pull && popd 
-      && pushd HealthMonitorTempestPlugin/ && git checkout main && git pull && popd
-    when: 
-      - dev is defined
-      - dev 
-      
 
 - name: Canary Setup
   hosts: localhost
@@ -109,6 +97,12 @@
       {% endif %}
       auth.test_accounts_file etc/accounts.yml
       network.public_network_id {{ pub_net_id }}
+      {% if bm_net_id is defined and bm_net_id|length and bm_flavors is defined and bm_flavors |length %}
+      validation.ssh_timeout 1200
+      validation.connect_timeout 1200
+      validation.ping_timeout 1200
+      compute.build_timeout 1200
+      {% endif %}
 
   - name: Append tempest.conf with health monitor section header
     lineinfile:
@@ -119,13 +113,35 @@
     blockinfile: 
       path: ./venv/clouddev/etc/tempest.conf
       block: |
-        image = {{ item.0 }}
+        flavor = {{ item.0 }}
         ssh_user = {{ item.1 }}
-        flavor = {{ item.2 }}
+        image = {{ item.2 }}
       marker: "# {mark} ANSIBLE MANAGED BLOCK - CONFIG {{idx+1}}"
-    loop: "{{ images | zip(ssh_users, flavors) | list }}"
+    loop: "{{ flavors | zip(ssh_users, images) | list }}"
     loop_control:
       index_var: idx
+
+  - name: Append tempest.conf with bm test config
+    blockinfile: 
+      path: ./venv/clouddev/etc/tempest.conf
+      block: |
+        bm_flavor = {{ item }}
+      marker: "# {mark} ANSIBLE MANAGED BLOCK - BM CONFIG {{idx+1}}"
+    loop: "{{ bm_flavors }}"
+    loop_control:
+      index_var: idx
+    when:
+      - bm_flavors is defined
+      - bm_flavors |length 
+  - name: Append tempest.conf with bm network 
+    lineinfile:
+      path: ./venv/clouddev/etc/tempest.conf
+      line: bm_net_id = {{ bm_net_id }}
+    when:
+      - bm_net_id is defined
+      - bm_net_id |length
+
+
   - name: Append tempest.conf with test config - alternative config
     blockinfile: 
       path: ./venv/clouddev/etc/tempest.conf
