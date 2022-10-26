@@ -8,20 +8,29 @@ sudo yum install -y python39 python39-pip gcc gcc-c++ openssl-devel libffi-devel
 [ ! -d 'venv' ] && python3.9 -m venv venv 
 source venv/bin/activate
 
-git submodule init && git submodule update
-pushd tempest-fork/
-git checkout no_admin_creds
-git pull 
-popd 
-pushd python-tempestconf/ 
-git checkout master
-git pull 
-popd 
-pushd HealthMonitorTempestPlugin/
-git checkout main
-git pull
-popd
-
+flag=false
+while getopts 'p' opt; do
+    case $opt in
+        p) flag=true ;;
+        *) echo 'Error in command line parsing' >&2
+            exit 1 ;;
+    esac
+done
+if "$flag"; then
+    git submodule init && git submodule update
+    pushd tempest-fork/
+    git checkout no_admin_creds
+    git pull 
+    popd 
+    pushd python-tempestconf/ 
+    git checkout master
+    git pull 
+    popd 
+    pushd HealthMonitorTempestPlugin/
+    git checkout main
+    git pull
+    popd
+fi
 pip install ansible 
 
 export PBR_VERSION=14.0.0
