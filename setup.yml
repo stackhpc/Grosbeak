@@ -24,16 +24,7 @@
     pip: 
       name: "docker"
       state: present
-  
-  - name: load submodules in dev mode
-    shell: >
-      git submodule init && git submodule update 
-      && pushd tempest-fork/ && git checkout no_admin_creds && git pull && popd 
-      && pushd python-tempestconf/ && git checkout master && git pull && popd 
-      && pushd HealthMonitorTempestPlugin/ && git checkout main && git pull && popd
-    when: dev 
       
-  
   handlers:
   - name: uninstall docker pip
     become: yes
@@ -63,7 +54,6 @@
         dockerfile: "{{ dockerfile_name_canary }}"
       name: "{{ image_name }}"
       source: build
-      force_source: "{{ dev }}"
       state: present
 
   - name: Create a volume for cloud config
@@ -208,6 +198,9 @@
       {% if floating_net_id is defined and floating_net_id|length %}
       network.floating_network_name {{ floating_net_id }}
       {% endif %}
+      {% for service in services_disabled %}
+      service_available.{{ service }} False
+      {% endfor %}
       auth.test_accounts_file /{{ cloud_volume_name }}/etc/accounts.yml
       network.public_network_id {{ pub_net_id }}'
 
@@ -216,32 +209,56 @@
       path: ./{{ cloud_volume_name }}/etc/tempest.conf
       line: "[healthmon]"
 
-  - name: Append tempest.conf with test config
-    blockinfile: 
+  - name: Append tempest.conf with images
+    lineinfile:
       path: ./{{ cloud_volume_name }}/etc/tempest.conf
-      block: |
-        image = {{ item.0 }}
-        ssh_user = {{ item.1 }}
-        flavor = {{ item.2 }}
-      marker: "# {mark} ANSIBLE MANAGED BLOCK - CONFIG {{idx+1}}"
-    loop: "{{ images | zip(ssh_users, flavors) | list }}"
+      line: "#{{ idx+1 }}\nimage = {{ item }}"
+    loop: "{{ images }}"
     loop_control:
       index_var: idx
-  - name: Append tempest.conf with test config - alternative config
-    blockinfile: 
+
+  - name: Append tempest.conf with flavors
+    lineinfile:
       path: ./{{ cloud_volume_name }}/etc/tempest.conf
-      block: |
-        image_alt = {{ item.0 }}
-        ssh_user_alt = {{ item.1 }}
-        flavor_alt = {{ item.2 }}
-      marker: "# {mark} ANSIBLE MANAGED BLOCK - ALT CONFIG {{idx+1}}"
-    loop: "{{ images_alt | zip(ssh_users_alt, flavors_alt) | list }}"
+      line: "#{{ idx+1 }}\nflavor = {{ item }}"
+    loop: "{{ flavors }}"
     loop_control:
       index_var: idx
-    when: 
-      - images_alt is defined
-      - ssh_users_alt is defined
-      - flavors_alt is defined
+
+  - name: Append tempest.conf with ssh_users
+    lineinfile:
+      path: ./{{ cloud_volume_name }}/etc/tempest.conf
+      line: "#{{ idx+1 }}\nssh_user = {{ item }}"
+    loop: "{{ ssh_users }}"
+    loop_control:
+      index_var: idx
+
+  - name: Append tempest.conf with images_alt
+    lineinfile:
+      path: ./{{ cloud_volume_name }}/etc/tempest.conf
+      line: "#{{ idx+1 }}\nimage_alt = {{ item }}"
+    loop: "{{ images_alt }}"
+    when: images_alt is defined
+    loop_control:
+      index_var: idx
+
+  - name: Append tempest.conf with flavors_alt
+    lineinfile:
+      path: ./{{ cloud_volume_name }}/etc/tempest.conf
+      line: "#{{ idx+1 }}\nflavor_alt = {{ item }}"
+    loop: "{{ flavors_alt }}"
+    when: flavors_alt is defined
+    loop_control:
+      index_var: idx
+
+  - name: Append tempest.conf with ssh_users_alt
+    lineinfile:
+      path: ./{{ cloud_volume_name }}/etc/tempest.conf
+      line: "#{{ idx+1 }}\n ssh_user_alt = {{ item }}"
+    loop: "{{ ssh_users_alt }}"
+    when: ssh_users_alt is defined
+    loop_control:
+      index_var: idx
   
   - name: Configure accounts.yml
     blockinfile:
@@ -272,6 +289,7 @@
       name: "{{ cron_image_name }}"
       source: build
       state: present
+
   - name: Start container
     docker_container:
       name: "{{ cron_container_name }}"
@@ -280,46 +298,13 @@
       tty: yes
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
-
-
-
-
-
-
-
-  # - name: Append tempest.conf with images
-  #   lineinfile:
-  #     path: ./cloud/etc/tempest.conf
-  #     line: "image = {{ item }}"
-  #   loop: "{{ images }}"
-  # - name: Append tempest.conf with flavors
-  #   lineinfile:
-  #     path: ./cloud/etc/tempest.conf
-  #     line: "flavor = {{ item }}"
-  #   loop: "{{ flavors }}"
-  # - name: Append tempest.conf with ssh_users
-  #   lineinfile:
-  #     path: ./cloud/etc/tempest.conf
-  #     line: "ssh_user = {{ item }}"
-  #   loop: "{{ ssh_users }}"
-  # - name: Append tempest.conf with images_alt
-  #   lineinfile:
-  #     path: ./cloud/etc/tempest.conf
-  #     line: "image_alt = {{ item }}"
-  #   loop: "{{ images_alt }}"
-  #   when: images_alt is defined
-  # - name: Append tempest.conf with flavors_alt
-  #   lineinfile:
-  #     path: ./cloud/etc/tempest.conf
-  #     line: "flavor_alt = {{ item }}"
-  #   loop: "{{ flavors_alt }}"
-  #   when: flavors_alt is defined
-  # - name: Append tempest.conf with ssh_users_alt
-  #   lineinfile:
-  #     path: ./cloud/etc/tempest.conf
-  #     line: "ssh_user_alt = {{ item }}"
-  #   loop: "{{ ssh_users_alt }}"
-  #   when: ssh_users_alt is defined
+  
+  - name: inject cronjob and apply
+    shell: >
+      docker cp cronjob {{ cron_container_name }}:/etc/cron.d/cronjob
+      && docker exec {{ cron_container_name }} bash -c 
+      'chmod 0644 /etc/cron.d/cronjob
+      && crontab /etc/cron.d/cronjob'
 
 
 
