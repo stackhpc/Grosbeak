@@ -13,14 +13,8 @@ RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
 RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 RUN apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io
 
-#adding healthmon cron job
-COPY cronjob /etc/cron.d/cronjob
-
-RUN chmod 0644 /etc/cron.d/cronjob
-
-RUN crontab /etc/cron.d/cronjob
-
 RUN touch /var/log/cron.log
 RUN touch /var/log/output.log
+
 
 ENTRYPOINT ["cron", "-f"]
