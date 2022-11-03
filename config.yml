@@ -21,12 +21,20 @@ os_auth_plugin:
 floating_ips: False
 #floating_net_id: c75dd66e-7e1a-4b33-9240-9bc4ce452331
 pub_net_id: 26023e3d-bc8e-459c-8def-dbd47ab01756
+bm_net_id: a56b71cc-2220-479d-97a5-082b722e9e4c
 images:
-  - 4b89aa64-1860-4b1e-b294-e000b1423b13
+  - 4b89aa64-1860-4b1e-b294-e000b1423b13 #cirros
 ssh_users:
   - cirros
 flavors:
-  - abf8401b-f0f4-4c20-bdfa-5626bca8bf31
+  - 83eae2c4-967d-4a56-88ce-7da271b175ce
+#bm_flavors:
+##  - cc36c56f-4e2a-49eb-8d06-c96a3ed0bc19
+
+#explicitly remove any services here from tempest configuration (won't run tempest tests/config on these)
+services_disabled:
+  - octavia
+
 
 #CANARY TEST CONFIG
 # floating_ips: 
@@ -37,12 +45,12 @@ flavors:
 # flavors:
 
 #dev - whether docker image should be rebuilt every run of the playbook
-dev: yes
+dev: no
 
 #CI 
 #timing - enter the frequency with which you wish this test setup should be executed in cron format
 # m h dom m dow 
-schedule: "* * * * *"
+schedule: "30 04,16 * * *"
 
 #DEFAULTS - no need to touch these but you can if you want
 cron_lock_dir: /var/lock/cron
