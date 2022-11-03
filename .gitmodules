@@ -7,4 +7,4 @@
 	branch = no_admin_creds
 [submodule "python-tempestconf"]
 	path = python-tempestconf
-	url = https://opendev.org/openinfra/python-tempestconf
+	url = https://github.com/stackhpc/temp-tempest-pythonconf
