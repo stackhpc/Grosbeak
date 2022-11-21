@@ -142,7 +142,12 @@
         - os_auth_url |length
       fail_msg: "Some or all of the required configuration parameters were not provided. Please source an OS RC file and/or edit 'config.yml'."
 
-
+  - name: Update repos in container
+    shell: >
+      docker exec -u 0 {{ container_name }} bash -c 'cd /home/canary-agent/tempest-fork/ && git checkout no_admin_creds && git pull && pip3 install /home/canary-agent/tempest-fork/' &&
+      docker exec -u 0 {{ container_name }} bash -c 'cd /home/canary-agent/python-tempestconf/ && git checkout master && git pull && pip3 install /home/canary-agent/python-tempestconf/' &&
+      docker exec -u 0 {{ container_name }} bash -c 'cd /home/canary-agent/HealthMonitorTempestPlugin/ && git checkout main && git pull &&  pip3 install /home/canary-agent/HealthMonitorTempestPlugin/'
+    register: debug
       
   - name: Configure tempest
     command: > 
