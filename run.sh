@@ -98,7 +98,7 @@ if ! "$flag"; then
     echo "-----------------------"
     sudo systemctl restart docker
 
-    MTU=$(ip -4 r show default | awk '$5 {print $5}' | xargs ip a show dev | grep mtu | awk '$3 {print $5}')
+    MTU=$(ip -4 r show default | awk '$5 {print $5}' | xargs -n1 ip a show dev | grep mtu  | awk '$3 {print $5}' | head -n1)
 
     sudo touch /etc/docker/daemon.json
 
