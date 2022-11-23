@@ -4,9 +4,8 @@
   connection: local
   vars_files:
     - config.yml
-  
   tasks:
-  - name: uninstall docker-py if present
+  - name: Uninstall docker-py if present
     become: yes
     become_method: sudo
     pip: 
