@@ -1,2 +1,2 @@
-{{ schedule }} docker exec {{ container_name }} bash -c 'flock --verbose -w 0 {{ cron_lock_dir }}/cron.lock -c  "cd /{{ cloud_volume_name }} && stestr run health_monitor"' > /var/log/output.log
+{{ schedule }} docker exec {{ container_name }} bash -c 'flock --verbose -w 0 {{ cron_lock_dir }}/cron.lock -c  "cd /{{ cloud_volume_name }}/cloud && stestr run health_monitor"' > /var/log/output.log
 #empty line

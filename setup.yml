@@ -142,19 +142,32 @@
         - os_auth_url |length
       fail_msg: "Some or all of the required configuration parameters were not provided. Please source an OS RC file and/or edit 'config.yml'."
 
-  - name: Update repos in container
+  - name: Pull latest from repos in container
     shell: >
-      docker exec -u 0 {{ container_name }} bash -c 'cd /home/canary-agent/tempest-fork/ && git checkout no_admin_creds && git pull && pip3 install /home/canary-agent/tempest-fork/' &&
-      docker exec -u 0 {{ container_name }} bash -c 'cd /home/canary-agent/python-tempestconf/ && git checkout master && git pull && pip3 install /home/canary-agent/python-tempestconf/' &&
-      docker exec -u 0 {{ container_name }} bash -c 'cd /home/canary-agent/HealthMonitorTempestPlugin/ && git checkout main && git pull &&  pip3 install /home/canary-agent/HealthMonitorTempestPlugin/'
-    register: debug
+      docker exec -u 0 {{ container_name }} bash -c 'cd /{{ cloud_volume_name }}/tempest-fork/ && git checkout no_admin_creds && git pull && pip3 install /{{ cloud_volume_name }}/tempest-fork/' &&
+      docker exec -u 0 {{ container_name }} bash -c 'cd /{{ cloud_volume_name }}/python-tempestconf/ && git checkout master && git pull && pip3 install /{{ cloud_volume_name }}/python-tempestconf/' &&
+      docker exec -u 0 {{ container_name }} bash -c 'cd /{{ cloud_volume_name }}/HealthMonitorTempestPlugin/ && git checkout main && git pull &&  pip3 install /{{ cloud_volume_name }}/HealthMonitorTempestPlugin/'
+    when: not dev
+  
+  - name: Copy local changes into container
+    shell: >
+        rm -rf ./{{ cloud_volume_name }}/HealthMonitorTempestPlugin && 
+        rm -rf ./{{ cloud_volume_name }}/tempest-fork && 
+        rm -rf ./{{ cloud_volume_name }}/python-tempestconf && 
+        cp -r HealthMonitorTempestPlugin ./{{ cloud_volume_name }} &&
+        cp -r tempest-fork ./{{ cloud_volume_name }} &&
+        cp -r python-tempestconf ./{{ cloud_volume_name }} && 
+        docker exec -u 0 {{ container_name }} bash -c 'cd /{{ cloud_volume_name }} && pip3 install tempest-fork/' && 
+        docker exec -u 0 {{ container_name }} bash -c 'cd /{{ cloud_volume_name }} && pip3 install HealthMonitorTempestPlugin/' && 
+        docker exec -u 0 {{ container_name }} bash -c 'cd /{{ cloud_volume_name }} && pip3 install python-tempestconf/'
+    when: dev 
       
   - name: Configure tempest
     command: > 
       docker exec
       {{ container_name }} bash -c 
-      'cd {{ cloud_volume_name }} && discover-tempest-config 
-      --out /{{ cloud_volume_name }}/etc/tempest.conf --non-admin 
+      'cd {{ cloud_volume_name }}/cloud && discover-tempest-config 
+      --out /{{ cloud_volume_name }}/cloud/etc/tempest.conf --non-admin 
       --os-username {{ os_username }}
       --os-password {{ os_password }}
       --os-auth-url {{ os_auth_url }} 
@@ -206,17 +219,17 @@
       {% for service in services_disabled %}
       service_available.{{ service }} False
       {% endfor %}
-      auth.test_accounts_file /{{ cloud_volume_name }}/etc/accounts.yml
+      auth.test_accounts_file /{{ cloud_volume_name }}/cloud/etc/accounts.yml
       network.public_network_id {{ pub_net_id }}'
 
   - name: Append tempest.conf with health monitor section header
     lineinfile:
-      path: ./{{ cloud_volume_name }}/etc/tempest.conf
+      path: ./{{ cloud_volume_name }}/cloud/etc/tempest.conf
       line: "[healthmon]"
 
   - name: Append tempest.conf with images
     lineinfile:
-      path: ./{{ cloud_volume_name }}/etc/tempest.conf
+      path: ./{{ cloud_volume_name }}/cloud/etc/tempest.conf
       line: "#{{ idx+1 }}\nimage = {{ item }}"
     loop: "{{ images }}"
     loop_control:
@@ -224,7 +237,7 @@
 
   - name: Append tempest.conf with flavors
     lineinfile:
-      path: ./{{ cloud_volume_name }}/etc/tempest.conf
+      path: ./{{ cloud_volume_name }}/cloud/etc/tempest.conf
       line: "#{{ idx+1 }}\nflavor = {{ item }}"
     loop: "{{ flavors }}"
     loop_control:
@@ -232,7 +245,7 @@
 
   - name: Append tempest.conf with ssh_users
     lineinfile:
-      path: ./{{ cloud_volume_name }}/etc/tempest.conf
+      path: ./{{ cloud_volume_name }}/cloud/etc/tempest.conf
       line: "#{{ idx+1 }}\nssh_user = {{ item }}"
     loop: "{{ ssh_users }}"
     loop_control:
@@ -240,7 +253,7 @@
 
   - name: Append tempest.conf with images_alt
     lineinfile:
-      path: ./{{ cloud_volume_name }}/etc/tempest.conf
+      path: ./{{ cloud_volume_name }}/cloud/etc/tempest.conf
       line: "#{{ idx+1 }}\nimage_alt = {{ item }}"
     loop: "{{ images_alt }}"
     when: images_alt is defined
@@ -249,7 +262,7 @@
 
   - name: Append tempest.conf with flavors_alt
     lineinfile:
-      path: ./{{ cloud_volume_name }}/etc/tempest.conf
+      path: ./{{ cloud_volume_name }}/cloud/etc/tempest.conf
       line: "#{{ idx+1 }}\nflavor_alt = {{ item }}"
     loop: "{{ flavors_alt }}"
     when: flavors_alt is defined
@@ -258,7 +271,7 @@
 
   - name: Append tempest.conf with ssh_users_alt
     lineinfile:
-      path: ./{{ cloud_volume_name }}/etc/tempest.conf
+      path: ./{{ cloud_volume_name }}/cloud/etc/tempest.conf
       line: "#{{ idx+1 }}\n ssh_user_alt = {{ item }}"
     loop: "{{ ssh_users_alt }}"
     when: ssh_users_alt is defined
@@ -267,7 +280,7 @@
   
   - name: Configure accounts.yml
     blockinfile:
-      path: ./{{ cloud_volume_name }}/etc/accounts.yml
+      path: ./{{ cloud_volume_name }}/cloud/etc/accounts.yml
       block: |
         - username: '{{ os_username | default(lookup('env','OS_USERNAME'),true) }}'
           tenant_name: '{{ os_project_name | default(lookup('env','OS_PROJECT_NAME'),true) }}'

@@ -9,31 +9,30 @@ RUN  yum install -y git python3-pip \
 
 #creating canary user
 RUN  groupadd --gid {{ health_check_gid }} {{ health_check_group }} \
-    && useradd -l -M --shell /usr/sbin/nologin --uid {{ health_check_uid }} --gid {{ health_check_gid }} {{ health_check_user }}
+    && useradd -l -M --shell /usr/sbin/nologin --uid {{ health_check_uid }} --gid {{ health_check_gid }} --no-create-home {{ health_check_user }}
 
 #log location
 RUN mkdir -p /var/log/{{ logs_volume_name }}
 RUN touch /var/log/{{ logs_volume_name }}/{{ logs_volume_name }}.log
 RUN chown -R {{ health_check_uid }}:{{ health_check_gid }} /var/log/{{ logs_volume_name }}
 
-#moving stuff to home dir 
-COPY . /home/{{ health_check_user }}
-RUN chown -R {{ health_check_uid }}:{{ health_check_gid }} /home/{{ health_check_user }}
-
-#tempest stuff install
-RUN cd /home/{{ health_check_user }} && git submodule init && git submodule update
+#get required repos
+RUN mkdir {{ cloud_volume_name }}
+RUN cd {{ cloud_volume_name }} && git clone https://github.com/stackhpc/HealthMonitorTempestPlugin
+RUN cd {{ cloud_volume_name }} && git clone https://github.com/stackhpc/temp-tempest-pythonconf python-tempestconf
+RUN cd {{ cloud_volume_name }} && git clone https://github.com/stackhpc/tempest-fork
 #get latest 
-RUN cd /home/{{ health_check_user }}/tempest-fork/ && git checkout no_admin_creds && git pull 
-RUN cd /home/{{ health_check_user }}/python-tempestconf/ && git checkout master && git pull 
-RUN cd /home/{{ health_check_user }}/HealthMonitorTempestPlugin/ && git checkout main && git pull
+RUN cd {{ cloud_volume_name }}/tempest-fork/ && git checkout no_admin_creds && git pull 
+RUN cd {{ cloud_volume_name }}/python-tempestconf/ && git checkout master && git pull 
+RUN cd {{ cloud_volume_name }}/HealthMonitorTempestPlugin/ && git checkout main && git pull
 #install 
-RUN pip3 install /home/{{ health_check_user }}/tempest-fork/
-RUN pip3 install /home/{{ health_check_user }}/python-tempestconf/
-RUN pip3 install /home/{{ health_check_user }}/HealthMonitorTempestPlugin/
+RUN pip3 install {{ cloud_volume_name }}/tempest-fork/
+RUN pip3 install {{ cloud_volume_name }}/python-tempestconf/
+RUN pip3 install {{ cloud_volume_name }}/HealthMonitorTempestPlugin/
 
 #tempest workspace
-RUN tempest init {{ cloud_volume_name }}
-RUN touch {{ cloud_volume_name }}/etc/accounts.yml
+RUN cd {{ cloud_volume_name }} && tempest init cloud
+RUN touch {{ cloud_volume_name }}/cloud/etc/accounts.yml
 RUN chown -R {{ health_check_uid }}:{{ health_check_gid }} {{ cloud_volume_name }}
 RUN chown -R {{ health_check_uid }}:{{ health_check_gid }} /tmp/tempest-lock
 
