@@ -42,7 +42,7 @@ dev: no
 #CI 
 #timing - enter the frequency with which you wish this test setup should be executed in cron format
 # m h dom m dow 
-schedule: "* * * * *"
+schedule: "*/15 * * * *"
 
 #DEFAULTS - no need to touch these but you can if you want
 cron_lock_dir: /var/lock/cron
@@ -52,13 +52,21 @@ health_check_uid: 43000
 health_check_gid: 43000
 health_check_group: canary
 
+notify_user: notify-agent
+notify_uid: 43001
+notify_gid: 43001
+notify_group: notify
+
 cloud_volume_name: cloud
 logs_volume_name: healthmon
 image_name: canary:latest
 container_name: canary
 cron_image_name: cron:latest
 cron_container_name: cron
+notify_image_name: notify:latest
+notify_container_name: notify
 
 docker_runtime_directory: /var/lib/docker
 dockerfile_name_canary: tempestDockerfile
 dockerfile_name_cron: cronDockerfile
+dockerfile_name_notify: cronDockerfile
