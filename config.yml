@@ -59,11 +59,11 @@ notify_group: notify
 
 cloud_volume_name: cloud
 logs_volume_name: healthmon
-image_name: canary:latest
+image_name: canary
 container_name: canary
-cron_image_name: cron:latest
+cron_image_name: cron
 cron_container_name: cron
-notify_image_name: notify:latest
+notify_image_name: notify
 notify_container_name: notify
 
 docker_runtime_directory: /var/lib/docker
