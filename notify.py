@@ -7,16 +7,19 @@ import traceback
 LOG_FILE = os.environ.get('LOG_FILE', './healthmon.log')
 OS_PROJECT_NAME= os.environ.get('OS_PROJECT_NAME', 'Default')
 
-url = "https://hooks.slack.com/services/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"
+URL = "https://hooks.slack.com/services/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"
 
 def get_last_log():
-    f = subprocess.Popen(['tail','-n1',LOG_FILE],\
-            stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    try:
+        f = subprocess.Popen(['tail','-n1',LOG_FILE],\
+                stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 
-    line = f.stdout.readline()
-    log = json.loads(line.decode("utf-8"))
+        line = f.stdout.readline()
+        log = json.loads(line.decode("utf-8"))
 
-    return log
+        return log
+    except:
+        return "empty log file"
 
 def pastie_get_url(content):
 
@@ -37,14 +40,18 @@ def pastie_get_url(content):
 
     assert(f.returncode==0)
     
-    pastie_url = "http://pastie.org" + output.decode("utf-8").split('Redirecting to ',1)[1]
+    pastie_URL = "http://pastie.org" + output.decode("utf-8").split('Redirecting to ',1)[1]
 
-    print(pastie_url)
+    print(pastie_URL)
 
-    return pastie_url.strip()
+    return pastie_URL.strip()
 
 
 log = get_last_log()
+
+if type(log) == str:
+    print(log)
+    exit()
 
 if log['success'] == False:
     #try to parse into nice message, else fallback on raw output 
@@ -54,12 +61,12 @@ if log['success'] == False:
         log_error = log_error.replace("'",'"')
         log_error = json.loads(log_error)
 
-        details_url = pastie_get_url(log_error['details'])
+        details_URL = pastie_get_url(log_error['details'])
 
     except:
-        print('fart')
+        print(traceback.format_exc())
     
-    webhook = WebhookClient(url)
+    webhook = WebhookClient(URL)
     response = webhook.send(
         text="Server build failed!",
         blocks=[
@@ -112,8 +119,13 @@ if log['success'] == False:
                     "text": "*Server boot request ID:*"+bootID + "\n"
                     + "*Status Code:* " + str(log_error['code']) + "\n"
                     + "*Message:* " + log_error['message'] + "\n\n"
-                    + "<{}|*Details*>".format(details_url)
+                    + "<{}|*Details*>".format(details_URL)
                 }
 		    }
         ]
     )
+
+    try:
+        assert response.status_code == 200
+    except:
+        print("slack webhook failed with response:",response.body)
