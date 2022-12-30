@@ -2,7 +2,7 @@ FROM ubuntu:latest
 
 ENV LOG_FILE /var/log/{{ logs_volume_name }}/{{ logs_volume_name }}.log
 
-RUN apt update && apt install inotify-tools python3-pip -y
+RUN apt update && apt install inotify-tools python3-pip curl -y
 
 RUN pip3 install slack-sdk 
 
