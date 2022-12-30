@@ -7,7 +7,7 @@ import traceback
 LOG_FILE = os.environ.get('LOG_FILE', './healthmon.log')
 OS_PROJECT_NAME= os.environ.get('OS_PROJECT_NAME', 'Default')
 
-URL = "https://hooks.slack.com/services/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"
+URL = os.environ.get('WEBHOOK_URL', 'Default')
 
 def get_last_log():
     try:

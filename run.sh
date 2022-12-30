@@ -115,4 +115,4 @@ git submodule init && git submodule update
 pushd tempest-fork/ && git checkout no_admin_creds && git pull && popd
 pushd python-tempestconf/ && git checkout master && git pull && popd
 pushd HealthMonitorTempestPlugin/ && git checkout main && git pull && popd
-ansible-playbook setup.yml
+ansible-playbook setup.yml --ask-vault-pass

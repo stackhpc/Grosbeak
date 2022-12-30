@@ -1,6 +1,8 @@
 FROM ubuntu:latest
 
 ENV LOG_FILE /var/log/{{ logs_volume_name }}/{{ logs_volume_name }}.log
+ENV OS_PROJECT_NAME {{ os_project_name | default("Default",true) }}
+ENV WEBHOOK_URL {{ webhook_url }}
 
 RUN apt update && apt install inotify-tools python3-pip curl -y
 
