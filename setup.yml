@@ -40,8 +40,28 @@
   connection: local
   vars_files:
     - config.yml
+    - webhook_url.yml
   
   tasks:
+  - name: Set OS cloud facts
+    set_fact:
+      os_username: "{{ os_username | default(lookup('env','OS_USERNAME'),true) }}"
+      os_password: "{{ os_password | default(lookup('env','OS_PASSWORD'),true) }}"
+      os_auth_url: "{{ os_auth_url | default(lookup('env','OS_AUTH_URL'),true) }}"
+      os_project_domain_name: "{{ os_project_domain_name | default(lookup('env','OS_PROJECT_DOMAIN_NAME'),true) }}"
+      os_project_domain_id: "{{ os_project_domain_id | default(lookup('env','OS_PROJECT_DOMAIN_ID'),true) }}"
+      os_user_domain_name: "{{  os_user_domain_name | default(lookup('env','OS_USER_DOMAIN_NAME'),true)  }}"
+      os_user_domain_id: "{{  os_user_domain_id | default(lookup('env','OS_USER_DOMAIN_ID'),true)  }}"
+      os_project_name: "{{ os_project_name | default(lookup('env','OS_PROJECT_NAME'), true) }}"
+      os_project_id: "{{ os_project_id | default(lookup('env','OS_PROJECT_ID'),true) }}"
+      os_tenant_name: "{{ os_tenant_name | default(lookup('env','OS_TENANT_NAME'),true) }}"
+      os_tenant_id: "{{ os_tenant_id | default(lookup('env','OS_TENANT_ID'),true) }}"
+      os_interface: "{{ os_interface | default(lookup('env','OS_INTERFACE'),true) }}"
+      os_endpoint_type: "{{ os_endpoint_type | default(lookup('env','OS_ENDPOINT_TYPE'),true) }}"
+      os_identity_api_version : "{{ os_identity_api_version | default(lookup('env','OS_IDENTITY_API_VERSION'),true) }}"
+      os_region_name: "{{ os_region_name | default(lookup('env','OS_REGION_NAME'),true) }}"
+      os_auth_plugin: "{{ os_auth_plugin | default(lookup('env','OS_AUTH_PLUGIN'),true) }}"
+
   - name: Create a volume for cloud config
     become: yes
     become_method: sudo
@@ -132,25 +152,6 @@
       src: "{{ docker_runtime_directory or '/var/lib/docker' }}/volumes/{{ logs_volume_name }}/_data"
       path: "/var/log/{{ logs_volume_name }}"
       state: link
-  
-  - name: Set OS cloud facts
-    set_fact:
-      os_username: "{{ os_username | default(lookup('env','OS_USERNAME'),true) }}"
-      os_password: "{{ os_password | default(lookup('env','OS_PASSWORD'),true) }}"
-      os_auth_url: "{{ os_auth_url | default(lookup('env','OS_AUTH_URL'),true) }}"
-      os_project_domain_name: "{{ os_project_domain_name | default(lookup('env','OS_PROJECT_DOMAIN_NAME'),true) }}"
-      os_project_domain_id: "{{ os_project_domain_id | default(lookup('env','OS_PROJECT_DOMAIN_ID'),true) }}"
-      os_user_domain_name: "{{  os_user_domain_name | default(lookup('env','OS_USER_DOMAIN_NAME'),true)  }}"
-      os_user_domain_id: "{{  os_user_domain_id | default(lookup('env','OS_USER_DOMAIN_ID'),true)  }}"
-      os_project_name: "{{ os_project_name | default(lookup('env','OS_PROJECT_NAME'), true) }}"
-      os_project_id: "{{ os_project_id | default(lookup('env','OS_PROJECT_ID'),true) }}"
-      os_tenant_name: "{{ os_tenant_name | default(lookup('env','OS_TENANT_NAME'),true) }}"
-      os_tenant_id: "{{ os_tenant_id | default(lookup('env','OS_TENANT_ID'),true) }}"
-      os_interface: "{{ os_interface | default(lookup('env','OS_INTERFACE'),true) }}"
-      os_endpoint_type: "{{ os_endpoint_type | default(lookup('env','OS_ENDPOINT_TYPE'),true) }}"
-      os_identity_api_version : "{{ os_identity_api_version | default(lookup('env','OS_IDENTITY_API_VERSION'),true) }}"
-      os_region_name: "{{ os_region_name | default(lookup('env','OS_REGION_NAME'),true) }}"
-      os_auth_plugin: "{{ os_auth_plugin | default(lookup('env','OS_AUTH_PLUGIN'),true) }}"
   
   # - name: Check Keystone authentication
   #   openstack.cloud.auth:
