@@ -20,7 +20,7 @@ os_auth_plugin:
 #VM config - if the VM is not reachable from the host this test is run on, then a floating network will need to be configured
 floating_ips: False
 #floating_net_id: <floating_net_id>
-pub_net_id: <pub_net_id>
+pub_net_id: 26023e3d-bc8e-459c-8def-dbd47ab01756
 #bm_net_id: <bm_net_id>
 images:
   - #cirros
@@ -69,4 +69,4 @@ notify_container_name: notify
 docker_runtime_directory: /var/lib/docker
 dockerfile_name_canary: tempestDockerfile
 dockerfile_name_cron: cronDockerfile
-dockerfile_name_notify: cronDockerfile
+dockerfile_name_notify: notifyDockerfile
