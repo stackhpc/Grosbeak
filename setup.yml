@@ -113,9 +113,13 @@
     shell: >
       docker cp notifyjob {{ notify_container_name }}:notifyjob
       && docker cp notify.py {{ notify_container_name }}:notify.py
-      && docker exec {{ notify_container_name }} bash -c 
-      'chmod +x notifyjob
-      && crontab ./notifyjob > notifyjob.log 2>&1 &'
+      && docker exec -u 0 {{ notify_container_name }} bash -c 
+      'chown {{ notify_uid }}:{{ notify_gid }} notify.py
+      && chown {{ notify_uid }}:{{ notify_gid }} notifyjob
+      && touch notify.log 
+      && chown {{ notify_uid }}:{{ notify_gid }} notify.log
+      && chmod +x notifyjob
+      && ./notifyjob > notify.log 2>&1 &'
 
   - name: symlink cloud volume to host
     file:
@@ -200,7 +204,7 @@
     when: dev 
       
   - name: Configure tempest
-    command: > 
+    shell: > 
       docker exec
       {{ container_name }} bash -c 
       'cd {{ cloud_volume_name }}/cloud && discover-tempest-config 
