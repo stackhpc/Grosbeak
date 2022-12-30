@@ -40,4 +40,7 @@ RUN chown -R {{ health_check_uid }}:{{ health_check_gid }} /tmp/tempest-lock
 RUN mkdir -p {{ cron_lock_dir }} && touch {{ cron_lock_dir }}/cron.lock
 RUN chown -R {{ health_check_uid }}:{{ health_check_gid }} {{ cron_lock_dir }} 
 
+# workaround for `dubious ownership`
+RUN git config --global --add safe.directory '*'
+
 USER {{ health_check_user }}
