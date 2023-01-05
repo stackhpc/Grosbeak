@@ -63,18 +63,12 @@ if log['success'] == False:
 
         details_URL = pastie_get_url(log_error['details'])
 
-    except:
-        print(traceback.format_exc())
-    
-    webhook = WebhookClient(URL)
-    response = webhook.send(
-        text="Server build failed!",
         blocks=[
             {
                 "type": "header",
                 "text": {
                     "type": "plain_text",
-                    "text": "A server build has failed in Project '"+OS_PROJECT_NAME+"'"
+                    "text": "A server build has failed in project '"+OS_PROJECT_NAME+"'"
                 }
 		    },
             {
@@ -123,6 +117,69 @@ if log['success'] == False:
                 }
 		    }
         ]
+
+    except:
+        #print(traceback.format_exc())
+
+        details_URL = pastie_get_url(log['error'])
+
+        blocks=[
+            {
+                "type": "header",
+                "text": {
+                    "type": "plain_text",
+                    "text": "A server build has failed in Project '"+OS_PROJECT_NAME+"'"
+                }
+		    },
+            {
+                "type": "divider"
+            },
+            {
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "image",
+                        "image_url": "https://cdn-icons-png.flaticon.com/512/1687/1687561.png",
+                        "alt_text": "image: "
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": "*"+log['image']+"*"
+                    },
+                    {
+                        "type": "image",
+                        "image_url": "https://cdn-icons-png.flaticon.com/512/3208/3208726.png",
+                        "alt_text": "flavor: "
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": "*"+log['flavor']+"*"
+                    },
+                    {
+                        "type": "image",
+                        "image_url": "https://cdn-icons-png.flaticon.com/512/850/850960.png",
+                        "alt_text": "datetime: "
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": "*"+log['time']+"*"
+                    }
+                ]
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "*Warning:* there was an error in parsing the log file - falling back to raw output.  "  + "\n\n"
+                    + "<{}|*Details*>".format(details_URL)
+                }
+		    }
+        ]
+    
+    webhook = WebhookClient(URL)
+    response = webhook.send(
+        text="Server build failed!",
+        blocks=blocks
     )
 
     try:
