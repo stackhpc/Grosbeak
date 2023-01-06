@@ -23,18 +23,26 @@ floating_ips: False
 pub_net_id: 26023e3d-bc8e-459c-8def-dbd47ab01756
 #bm_net_id: <bm_net_id>
 images:
-  - #cirros
-  - #ubuntu
+  - bb8c0a34-533f-42fb-a49b-3461e677f3f6 # centos 8 
+  - db07cc73-636e-4af9-82fb-e4b446724e88 # centos 9 
+  - 4b89aa64-1860-4b1e-b294-e000b1423b13 # cirros
+  - 2d540f2f-aa6d-4918-8061-52608b5de353 # ubuntu 20
+  - 50ee5d40-8dd1-41ac-938e-3459ba56661d # ubuntu 22
 ssh_users:
+  - cloud-user
+  - centos
   - cirros
   - ubuntu
+  - ubuntu
 flavors:
-  - #small
-  - #large
+  - 83eae2c4-967d-4a56-88ce-7da271b175ce # small
+  - 48f1463b-77ce-4569-9a4f-de938063eb9f # medium 
+  - 92294f2d-0db9-4b03-bc7b-ded40c402d57 # large
+  - 84585936-7fa4-4380-9d20-808be7b3341f # xlarge
 
 #explicitly remove any services here from tempest configuration (won't run tempest tests/config on these)
 services_disabled:
-  - #octavia
+  #- octavia
 
 #dev - whether local changes to submodules should be installed in containers 
 dev: no
