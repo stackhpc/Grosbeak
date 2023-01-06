@@ -203,7 +203,6 @@
         docker exec -u 0 {{ container_name }} bash -c 'cd /{{ cloud_volume_name }} && pip3 install HealthMonitorTempestPlugin/' && 
         docker exec -u 0 {{ container_name }} bash -c 'cd /{{ cloud_volume_name }} && pip3 install python-tempestconf/'
     when: dev 
-      
   - name: Configure tempest
     shell: > 
       docker exec
@@ -258,9 +257,11 @@
       {% if floating_net_id is defined and floating_net_id|length %}
       network.floating_network_name {{ floating_net_id }}
       {% endif %}
+      {% if services_disabled is not none and services_disabled|length %}
       {% for service in services_disabled %}
       service_available.{{ service }} False
       {% endfor %}
+      {% endif %}
       auth.test_accounts_file /{{ cloud_volume_name }}/cloud/etc/accounts.yml
       network.public_network_id {{ pub_net_id }}'
 
@@ -319,6 +320,14 @@
     when: ssh_users_alt is defined
     loop_control:
       index_var: idx
+
+  - name: remove tempest-lock (in case job was cut short)
+    shell: > 
+      docker exec {{ container_name }} bash -c 'rm -f /cloud/cloud/tests.pos'
+  
+  - name: restart jobs
+    shell: > 
+      docker exec {{ container_name }} bash -c 'rm -rf /tmp/tempest-lock'
   
   - name: Configure accounts.yml
     blockinfile:
