@@ -103,13 +103,13 @@
   - name: Template notifier Dockerfile
     template:
       src: "./templates/notifierDockerfile.j2"
-      dest: "{{ dockerfile_name_notify }}"
+      dest: "./notify-service/{{ dockerfile_name_notify }}"
   
   - name: Build notifier image
     docker_image:
       build:
         path: .
-        dockerfile: "{{ dockerfile_name_notify }}"
+        dockerfile: "./notify-service/{{ dockerfile_name_notify }}"
       name: "{{ notify_image_name }}"
       source: build
       state: present
@@ -127,12 +127,12 @@
   - name: Template notify job
     template:
       src: "./templates/notifyjob.j2"
-      dest: notifyjob
+      dest: ./notify-service/notifyjob
   
   - name: inject notify job and start
     shell: >
-      docker cp notifyjob {{ notify_container_name }}:notifyjob
-      && docker cp notify.py {{ notify_container_name }}:notify.py
+      docker cp ./notify-service/notifyjob {{ notify_container_name }}:notifyjob
+      && docker cp ./notify-service/notify.py {{ notify_container_name }}:notify.py
       && docker exec -u 0 {{ notify_container_name }} bash -c 
       'chown {{ notify_uid }}:{{ notify_gid }} notify.py
       && chown {{ notify_uid }}:{{ notify_gid }} notifyjob
