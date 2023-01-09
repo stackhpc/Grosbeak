@@ -149,7 +149,7 @@
   - name: inject notify cronjob and apply
     shell: >
       docker cp ./notify-service/notifycronjob {{ notify_container_name }}:/etc/cron.d/cronjob
-      && docker exec {{ notify_container_name }} bash -c 
+      && docker exec -u 0 {{ notify_container_name }} bash -c 
       'chmod 0644 /etc/cron.d/cronjob
       && crontab /etc/cron.d/cronjob'
 
