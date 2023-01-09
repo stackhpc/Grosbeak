@@ -40,7 +40,7 @@
   connection: local
   vars_files:
     - config.yml
-    - webhook_url.yml
+    - slack_api_creds.yml
   
   tasks:
   - name: Set OS cloud facts
