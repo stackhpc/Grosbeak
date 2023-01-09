@@ -1,4 +1,4 @@
 inotifywait -q -m -e close_write /var/log/{{ logs_volume_name }}/{{ logs_volume_name }}.log |
 while read -r filename event; do
-  python3 notify.py
+  python3 /notify.py
 done

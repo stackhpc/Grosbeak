@@ -133,6 +133,7 @@
     shell: >
       docker cp ./notify-service/notifyjob {{ notify_container_name }}:notifyjob
       && docker cp ./notify-service/notify.py {{ notify_container_name }}:notify.py
+      && docker cp ./notify-service/notify-daily.py {{ notify_container_name }}:notify-daily.py
       && docker exec -u 0 {{ notify_container_name }} bash -c 
       'chown {{ notify_uid }}:{{ notify_gid }} notify.py
       && chown {{ notify_uid }}:{{ notify_gid }} notifyjob
