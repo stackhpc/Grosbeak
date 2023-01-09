@@ -50,7 +50,10 @@ dev: no
 #CI 
 #timing - enter the frequency with which you wish this test setup should be executed in cron format
 # m h dom m dow 
-schedule: "*/15 * * * *"
+schedule: "* * * * *"
+
+#daily summary - what time do you want your daily report to come in over slack? Default: 5pm
+notify_schedule: "00 17 * * *"
 
 #DEFAULTS - no need to touch these but you can if you want
 cron_lock_dir: /var/lock/cron
@@ -78,3 +81,6 @@ docker_runtime_directory: /var/lib/docker
 dockerfile_name_canary: tempestDockerfile
 dockerfile_name_cron: cronDockerfile
 dockerfile_name_notify: notifyDockerfile
+
+#slack notify service
+image_for_graphing: "Ubuntu-22.04"
