@@ -141,6 +141,18 @@
       && chmod +x notifyjob
       && ./notifyjob > notify.log 2>&1 &'
 
+  - name: Template notify cronjob
+    template:
+      src: "./templates/notifycronjob.j2"
+      dest: ./notify-service/notifycronjob
+  
+  - name: inject notify cronjob and apply
+    shell: >
+      docker cp ./notify-service/notifycronjob {{ notify_container_name }}:/etc/cron.d/cronjob
+      && docker exec {{ notify_container_name }} bash -c 
+      'chmod 0644 /etc/cron.d/cronjob
+      && crontab /etc/cron.d/cronjob'
+
   - name: symlink cloud volume to host
     file:
       src: "{{ docker_runtime_directory }}/volumes/{{ cloud_volume_name }}/_data"
