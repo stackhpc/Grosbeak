@@ -19,5 +19,3 @@ RUN touch /var/log/cron.log
 RUN touch /var/log/output.log
 
 USER {{ notify_user }}
-
-ENTRYPOINT ["cron", "-f"]
