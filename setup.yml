@@ -151,7 +151,8 @@
       docker cp ./notify-service/notifycronjob {{ notify_container_name }}:/etc/cron.d/cronjob
       && docker exec -u 0 {{ notify_container_name }} bash -c 
       'chmod 0644 /etc/cron.d/cronjob
-      && crontab /etc/cron.d/cronjob'
+      && crontab /etc/cron.d/cronjob
+      && cron -f &'
 
   - name: symlink cloud volume to host
     file:
