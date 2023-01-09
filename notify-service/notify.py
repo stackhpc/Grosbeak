@@ -4,11 +4,15 @@ import json
 from slack_sdk.webhook import WebhookClient
 import traceback
 
+#This program is called by inotifywait in the shell script 'notifyjob' whenever a change is made to health monitors log file (generally /var/log/healthmon/healthmon.log)
+#and posts an alert to slack if a build fails
+
 LOG_FILE = os.environ.get('LOG_FILE', './healthmon.log')
 OS_PROJECT_NAME= os.environ.get('OS_PROJECT_NAME', 'Default')
 
 URL = os.environ.get('WEBHOOK_URL', 'Default')
 
+#tail the log file
 def get_last_log():
     try:
         f = subprocess.Popen(['tail','-n1',LOG_FILE],\
@@ -21,6 +25,7 @@ def get_last_log():
     except:
         return "empty log file"
 
+#post stack trace to text hosting website. TTL 24 hours
 def pastie_get_url(content):
 
     payload = "language=plaintext&content={}".format(content)
@@ -49,6 +54,9 @@ def pastie_get_url(content):
 
 log = get_last_log()
 
+#log file empty, exit
+#TODO: maybe post a warning to slack about empty log file/parsing error? something has gone wrong 
+
 if type(log) == str:
     print(log)
     exit()
@@ -56,6 +64,7 @@ if type(log) == str:
 if log['success'] == False:
     #try to parse into nice message, else fallback on raw output 
     try:
+        #parsing tempest error logs out of JSON object
         log_error, bootID = log['error'].split('Details: Fault: ',1)[1].split('. Server boot request ID:',1)
         log_error = log_error.replace('"','\\"')
         log_error = log_error.replace("'",'"')
@@ -63,6 +72,7 @@ if log['success'] == False:
 
         details_URL = pastie_get_url(log_error['details'])
 
+        #Slack message
         blocks=[
             {
                 "type": "header",
@@ -119,7 +129,8 @@ if log['success'] == False:
         ]
 
     except:
-        #print(traceback.format_exc())
+        #fallback to raw output
+        print(traceback.format_exc())
 
         details_URL = pastie_get_url(log['error'])
 
