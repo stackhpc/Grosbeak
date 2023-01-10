@@ -21,7 +21,6 @@ import matplotlib.dates
 
 LOG_FILE = os.environ.get('LOG_FILE', './healthmon.log')
 URL = os.environ.get('DAILY_WEBHOOK_URL', 'Default')
-BOT_TOKEN = os.environ.get('BOT_TOKEN', 'Default')
 USER_TOKEN = os.environ.get('USER_TOKEN', 'Default')
 SELECTED = os.environ.get('IMAGE_FOR_GRAPHING', 'Ubuntu-22.04')
 FIG_NAME = "foo.png"
