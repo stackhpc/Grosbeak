@@ -1,0 +1,3 @@
+webhook_url: "https://hooks.slack.com/services/my-webhook"
+daily_webhook_url: "https://hooks.slack.com/services/my-second-webhook"
+user_token: "xoxp-xxxxxxxxxxx-xxxxxxxxxxx-xxxxxxxxxxx-xxxxxxxxxxx"
