@@ -6,6 +6,7 @@ ENV WEBHOOK_URL {{ webhook_url }}
 ENV USER_TOKEN {{ user_token }}
 ENV BOT_TOKEN {{ bot_token }}
 ENV IMAGE_FOR_GRAPHING {{ image_for_graphing }}
+ENV DAILY_WEBHOOK_URL {{ daily_webhook_url }}
 
 RUN apt update && apt install inotify-tools python3-pip curl cron -y
 
