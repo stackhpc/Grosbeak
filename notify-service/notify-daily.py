@@ -73,8 +73,9 @@ with open(LOG_FILE,'r+') as f:
 
         matplotlib.pyplot.gca().xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%H:%M'))
         matplotlib.pyplot.xlabel('Time of Day')
-        matplotlib.pyplot.ylabel('Time')
+        matplotlib.pyplot.ylabel('Time (Seconds)')
         matplotlib.pyplot.legend()
+        matplotlib.pyplot.xticks(rotation=45)
         matplotlib.pyplot.tight_layout()
 
         matplotlib.pyplot.savefig(FIG_NAME)
